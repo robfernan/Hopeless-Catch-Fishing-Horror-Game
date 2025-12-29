@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  web-version-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Check HTML syntax
+      run: |
+        # Basic HTML validation
+        if ! grep -q "<!DOCTYPE html>" HTML_CSS_JS/index.html; then
+          echo "Missing DOCTYPE declaration"
+          exit 1
+        fi
+        echo "HTML syntax check passed"
+        
+    - name: Check JavaScript syntax
+      run: |
+        # Basic JavaScript syntax check
+        cd HTML_CSS_JS
+        for file in $(find src -name "*.js"); do
+          echo "Checking $file"
+          node -c "$file" || exit 1
+        done
+        echo "JavaScript syntax check passed"
+        
+    - name: Install dependencies (if package.json exists)
+      run: |
+        cd HTML_CSS_JS
+        if [ -f package.json ]; then
+          npm install
+        fi
+        
+    - name: Check for common issues
+      run: |
+        cd HTML_CSS_JS
+        # Check for console.log statements (should be removed in production)
+        if grep -r "console\.log" src/; then
+          echo "Warning: console.log statements found in source code"
+        fi
+        
+        # Check for TODO comments
+        if grep -r "TODO\|FIXME" src/; then
+          echo "Info: TODO/FIXME comments found"
+        fi
+        
+        echo "Code quality check completed"
+
+  love2d-version-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check Love2D files exist
+      run: |
+        if [ ! -f "Love2d Version/HopelessCatch.love" ]; then
+          echo "Error: HopelessCatch.love file not found"
+          exit 1
+        fi
+        
+        if [ ! -d "Love2d Version/HopelessCatch_Source" ]; then
+          echo "Error: Source directory not found"
+          exit 1
+        fi
+        
+        echo "Love2D version check passed"
+        
+    - name: Check Lua syntax (basic)
+      run: |
+        cd "Love2d Version/HopelessCatch_Source"
+        # Check if main.lua exists
+        if [ ! -f "main.lua" ]; then
+          echo "Error: main.lua not found"
+          exit 1
+        fi
+        
+        echo "Lua files check passed"
+
+  documentation-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check required documentation
+      run: |
+        required_files=(
+          "README.md"
+          "LICENSE"
+          "CONTRIBUTING.md"
+          "HTML_CSS_JS/README.md"
+          "HTML_CSS_JS/DEVELOPER_GUIDE.md"
+          "HTML_CSS_JS/QUICK_START.md"
+        )
+        
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "Error: Required file $file not found"
+            exit 1
+          fi
+        done
+        
+        echo "Documentation check passed"
+        
+    - name: Check links in README
+      run: |
+        # Basic check for broken internal links
+        if grep -o '\[.*\](.*\.md)' README.md | while read link; do
+          file=$(echo "$link" | sed 's/.*](\(.*\))/\1/')
+          if [ ! -f "$file" ]; then
+            echo "Warning: Broken link to $file in README.md"
+          fi
+        done
+        
+        echo "Link check completed"

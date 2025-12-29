@@ -1,0 +1,116 @@
+html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial}
+#app{display:flex;align-items:center;justify-content:center;height:100vh;background:#111;padding:10px;box-sizing:border-box}
+#game-canvas{image-rendering:pixelated;border:6px solid #222;background:#000;box-shadow:0 0 30px rgba(0,0,0,0.8);max-width:100%;max-height:100vh;width:auto;height:auto}
+#ui{position:fixed;left:8px;top:8px;color:#fff;z-index:10}
+
+/* Responsive design */
+@media (max-width:1024px){
+  #game-canvas{max-width:90vw;max-height:90vh}
+  #ui{left:4px;top:4px;font-size:12px}
+}
+
+@media (max-width:768px){
+  #game-canvas{max-width:95vw;max-height:95vh}
+  #ui{left:2px;top:2px;font-size:11px}
+  .overlay .menu-box{width:90vw;max-width:500px}
+}
+
+@media (max-width:480px){
+  #game-canvas{max-width:100vw;max-height:100vh}
+  #ui{left:2px;top:2px;font-size:10px}
+  .overlay .menu-box{width:95vw;max-width:400px}
+  .menu-box .primary{padding:10px 14px;font-size:14px}
+  .menu-list li{padding:8px 0;font-size:14px}
+}
+
+/* Animations */
+@keyframes pulse{0%{opacity:0.7}50%{opacity:1}100%{opacity:0.7}}
+@keyframes glow{0%{text-shadow:0 0 5px rgba(255,200,100,0.5)}50%{text-shadow:0 0 15px rgba(255,200,100,0.8)}100%{text-shadow:0 0 5px rgba(255,200,100,0.5)}}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* Menu overlay */
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.95);z-index:50;animation:fadeIn 0.3s ease-out}
+.overlay .menu-box{width:520px;color:#ddd;text-align:center;animation:slideIn 0.4s ease-out}
+.overlay h1{color:#d66;margin:0 0 12px;font-size:32px;animation:glow 2s ease-in-out infinite}
+.subtitle{color:#999;margin-bottom:24px;font-size:14px}
+.menu-box .primary{display:block;margin:0 auto 18px;padding:12px 18px;background:#7a3f2e;color:#fff;border:none;border-radius:6px;cursor:pointer;transition:all 0.2s ease;font-weight:500}
+.menu-box .primary:hover{background:#9a5f4e;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+.menu-box .primary:active{transform:translateY(0)}
+.menu-list{list-style:none;padding:0;margin:0;color:#ddd}
+.menu-list li{padding:10px 0;cursor:pointer;transition:all 0.2s ease;border-radius:4px}
+.menu-list li:hover{background:rgba(255,255,255,0.08);color:#fff;padding-left:8px}
+.overlay.visible{display:flex}
+.overlay.hidden{display:none}
+
+/* Selected menu item */
+.menu-list li.selected, .menu-box .primary.selected{background:rgba(255,200,100,0.15);color:#ffc864;border-left:3px solid #ffc864;padding-left:5px}
+.menu-box .primary:focus{outline:2px solid #ffc864;outline-offset:2px}
+.menu-list li:focus{outline:2px solid #ffc864;outline-offset:2px}
+
+/* How to Play content */
+.howto-content{max-width:420px;margin:0 auto 18px;color:#ddd;line-height:1.6;text-align:left;font-size:13px}
+.howto-content p{margin:8px 0}
+.howto-content strong{color:#ffc864}
+
+/* Tacklebox styles */
+.tacklebox-grid{display:flex;gap:18px;justify-content:center;align-items:flex-start;padding:6px 12px;animation:slideIn 0.3s ease-out}
+.bait-tile{width:110px;text-align:center;cursor:pointer;transition:all 0.2s ease}
+.bait-tile:hover{transform:scale(1.05)}
+.bait-icon{width:86px;height:86px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;border:2px solid rgba(0,0,0,0.06);box-shadow:0 10px 24px rgba(0,0,0,0.12);transition:all 0.2s ease}
+.bait-icon img{max-width:70%;max-height:70%;display:block;image-rendering:pixelated}
+.bait-label{font-size:13px;color:#333;margin-top:2px;font-weight:500}
+.bait-tile.selected .bait-icon{outline:3px solid #ffc864;transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,0.14),0 0 20px rgba(255,200,100,0.3)}
+.bait-tile.selected .bait-label{color:#7a3f2e;font-weight:bold}
+.tacklebox-instructions{font-size:13px;color:#444;margin-top:6px}
+
+/* Make the tacklebox panel look like a solid card */
+#tacklebox-panel .menu-box{
+	background:linear-gradient(180deg,#ffffff,#fbfbfb);
+	color:#222;
+	border-radius:16px;
+	padding:18px 22px;
+	box-shadow:0 20px 60px rgba(0,0,0,0.45);
+	border:1px solid rgba(0,0,0,0.08);
+	max-width:620px;
+	animation:slideIn 0.3s ease-out
+}
+#tacklebox-panel .subtitle{color:#666}
+#tacklebox-panel .primary{background:#7a3f2e;color:#fff}
+#tacklebox-panel .menu-box h2{font-size:20px;margin:6px 0 10px;color:#3a2b2b;font-weight:600}
+#tacklebox-panel .help-line{font-size:12px;color:#666;margin-top:8px}
+
+/* Fishing HUD */
+#fishing-hud.fishing-hud{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:rgba(0,0,0,0.7);color:#fff;padding:10px 16px;border-radius:8px;z-index:40;min-width:220px;text-align:center;font-size:14px;border:1px solid rgba(255,200,100,0.2);animation:slideIn 0.3s ease-out}
+
+/* Catch panel styling */
+#catch-panel .catch-box{
+	max-width:640px;
+	padding:16px 18px;
+	border-radius:14px;
+	background:linear-gradient(180deg,#ffffff,#fbfbfb);
+	color:#222;
+	box-shadow:0 28px 80px rgba(0,0,0,0.5);
+	border:1px solid rgba(0,0,0,0.08);
+	animation:slideIn 0.4s ease-out
+}
+.catch-content{display:flex;gap:14px;align-items:center}
+.catch-sprite{width:140px;height:100px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:linear-gradient(#f6f6f6,#ffffff);border:2px solid rgba(0,0,0,0.06);animation:pulse 1.5s ease-in-out infinite}
+.catch-sprite img{max-width:96px;max-height:80px;image-rendering:pixelated;display:block}
+#catch-placeholder{font-size:32px;color:#bbb}
+.catch-meta{flex:1;display:flex;flex-direction:column;gap:8px}
+.catch-name{font-family:Georgia,serif;font-size:20px;color:#3b1f10;font-weight:bold}
+.catch-desc{color:#444;font-size:13px;line-height:1.4}
+.catch-rarity{font-size:13px;color:#666;font-weight:500}
+.catch-actions{margin-top:6px}
+.catch-actions .primary{padding:8px 14px;border-radius:8px;transition:all 0.2s ease}
+.catch-actions .primary:hover{background:#9a5f4e;transform:translateY(-1px)}
+
+/* Journal panel */
+#journal-panel .menu-box{animation:slideIn 0.3s ease-out}
+#journal-panel h2{color:#d66;margin-bottom:12px}
+#journal-content{font-size:12px;line-height:1.5;color:#333}
+.journal-entry{padding:8px;margin:4px 0;background:rgba(0,0,0,0.03);border-left:3px solid #7a3f2e;border-radius:4px}
+.journal-entry-name{font-weight:bold;color:#3b1f10}
+.journal-entry-time{font-size:11px;color:#999}
+

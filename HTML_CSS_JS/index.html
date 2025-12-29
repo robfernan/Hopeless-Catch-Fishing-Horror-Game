@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hopeless Catch — Web Port (minimal)</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div id="app">
+  <canvas id="game-canvas" tabindex="0" width="800" height="600"></canvas>
+      <div id="ui">
+        <div id="fps">FPS: --</div>
+        <div id="fishing-hud" class="fishing-hud"></div>
+      </div>
+    </div>
+
+    <!-- Main menu overlay -->
+    <div id="main-menu" class="overlay visible">
+      <div class="menu-box">
+        <h1>Hopeless Catch</h1>
+        <p class="subtitle">A Psychological Fishing Horror</p>
+        <button id="start-btn" class="primary">Start Game</button>
+        <ul class="menu-list">
+          <li id="howto-btn">How to Play</li>
+          <li id="settings-btn">Settings</li>
+          <li id="credits-btn">Credits</li>
+          <li id="quit">Quit</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- How to Play panel -->
+    <div id="howto-panel" class="overlay hidden" aria-hidden="true">
+      <div class="menu-box">
+        <h2 style="color:#d66;">How to Play</h2>
+        <p class="subtitle">Quick Start Guide</p>
+        <div class="howto-content">
+          <p><strong>Controls:</strong></p>
+          <p>WASD / Arrow Keys - Move</p>
+          <p>SPACE - Cast line / Reel fish</p>
+          <p>Press B to open the Tacklebox</p>
+          <p>ESC - Pause / Menu</p>
+          <p>Before you cast you need bait. To cast, press SPACE twice—once to ready, once to cast.</p>
+        </div>
+        <button id="howto-back" class="primary">Back</button>
+      </div>
+    </div>
+
+    <!-- Credits panel -->
+    <div id="credits-panel" class="overlay hidden" aria-hidden="true">
+      <div class="menu-box">
+        <h2 style="color:#d66;">Credits</h2>
+        <div class="howto-content" style="text-align:center">
+          <p>Game Development &amp; Design</p>
+          <p>Programming in Love2D &amp; Art in Aseprite</p>
+          <p>Created by MungDaal321 with help of Copilot</p>
+          <p>Thanks for playing!</p>
+        </div>
+        <button id="credits-back" class="primary">Back</button>
+      </div>
+    </div>
+
+    <!-- Settings panel -->
+    <div id="settings-panel" class="overlay hidden" aria-hidden="true">
+      <div class="menu-box">
+        <h2 style="color:#d66;">Settings</h2>
+        <p class="subtitle">Customize your experience</p>
+        <div style="max-width:420px;margin:0 auto 18px;text-align:center">
+          <button id="peaceful-toggle" class="primary">Peaceful Mode: Off</button>
+        </div>
+        <button id="settings-back" class="primary">Back</button>
+      </div>
+    </div>
+
+    <!-- Tacklebox panel -->
+    <div id="tacklebox-panel" class="overlay hidden" aria-hidden="true">
+      <div class="menu-box" style="width:620px">
+        <h2 style="color:#d66;">Tackle Box</h2>
+        <p class="subtitle">Select your bait</p>
+        <div id="tacklebox-grid" class="tacklebox-grid">
+          <!-- bait tiles: each tile contains an icon and a label -->
+          <div class="bait-tile" data-bait="worms" tabindex="0">
+            <div class="bait-icon"><img src="assets/bait/worms.png" alt="Worms"/></div>
+            <div class="bait-label">Worms</div>
+          </div>
+          <div class="bait-tile" data-bait="minnows" tabindex="0">
+            <div class="bait-icon"><img src="assets/bait/minnows.png" alt="Minnows"/></div>
+            <div class="bait-label">Minnows</div>
+          </div>
+          <div class="bait-tile" data-bait="cheese" tabindex="0">
+            <div class="bait-icon"><img src="assets/bait/cheese.png" alt="Cheese"/></div>
+            <div class="bait-label">Cheese</div>
+          </div>
+          <div class="bait-tile" data-bait="corn" tabindex="0">
+            <div class="bait-icon"><img src="assets/bait/corn.png" alt="Corn"/></div>
+            <div class="bait-label">Corn</div>
+          </div>
+        </div>
+        <div class="tacklebox-instructions" style="margin-top:14px;text-align:center">
+          <button id="tacklebox-close" class="primary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Catch panel (shown when player lands a fish) -->
+    <div id="catch-panel" class="overlay hidden" aria-hidden="true">
+      <div class="menu-box catch-box" role="dialog" aria-labelledby="catch-title">
+        <h2 id="catch-title">You caught a fish!</h2>
+        <div class="catch-content">
+          <div class="catch-sprite" id="catch-sprite">
+            <!-- fish image will be inserted here if available -->
+            <img id="catch-img" src="" alt="Caught fish" style="display:none" />
+            <div id="catch-placeholder">?</div>
+          </div>
+          <div class="catch-meta">
+            <div id="catch-name" class="catch-name">Unknown</div>
+            <div id="catch-desc" class="catch-desc">Description of the fish will appear here.</div>
+            <div id="catch-rarity" class="catch-rarity">rarity: unknown</div>
+            <div class="catch-actions">
+              <button id="catch-close" class="primary">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Journal panel -->
+    <div id="journal-panel" class="overlay hidden" aria-hidden="true">
+      <div class="menu-box" style="width:700px;max-height:500px;overflow-y:auto">
+        <h2 style="color:#d66;">📔 Journal</h2>
+        <p class="subtitle">Your fishing records</p>
+        <div id="journal-content" style="text-align:left;max-height:350px;overflow-y:auto">
+          <!-- Journal content will be populated here -->
+        </div>
+        <button id="journal-close" class="primary" style="margin-top:14px">Close</button>
+      </div>
+    </div>
+
+    <!-- Inline minimal assets, world, player and main loop so file:// works without a server -->
+    </script>
+
+    <script>
+    // Catch window API: show/hide the catch overlay and populate with fish data
+    (function(){
+      const panel = document.getElementById('catch-panel');
+      const img = document.getElementById('catch-img');
+      const placeholder = document.getElementById('catch-placeholder');
+      const nameEl = document.getElementById('catch-name');
+      const descEl = document.getElementById('catch-desc');
+      const rarityEl = document.getElementById('catch-rarity');
+      const closeBtn = document.getElementById('catch-close');
+
+      function showCatchWindow(fish){
+        try{
+          // fish is expected to be { name, type, description, difficulty, rarity, lore }
+          const fname = (fish && (fish.name || fish.type)) || 'Unknown';
+          const fdesc = (fish && fish.description) || '';
+          const frag = (fish && fish.rarity) || 'unknown';
+          const flore = (fish && fish.lore) || '';
+          
+          nameEl.textContent = fname
+          descEl.textContent = fdesc
+          rarityEl.textContent = 'rarity: ' + frag
+          
+          // Add lore if available
+          let loreEl = document.getElementById('catch-lore');
+          if (!loreEl) {
+            loreEl = document.createElement('div');
+            loreEl.id = 'catch-lore';
+            loreEl.style.cssText = 'margin-top: 10px; font-size: 11px; color: #999; font-style: italic; border-top: 1px solid #8b7355; padding-top: 10px;';
+            rarityEl.parentElement.appendChild(loreEl);
+          }
+          
+          if (flore) {
+            loreEl.textContent = flore;
+            loreEl.style.display = 'block';
+          } else {
+            loreEl.style.display = 'none';
+          }
+
+          // try to find an image in the Assets registry
+          let assetKey = (fish && (fish.type || fish.asset || '').toString()) || ''
+          let foundImg = null
+          try{ if(window.Assets && typeof window.Assets.getImage === 'function') foundImg = window.Assets.getImage(assetKey) }catch(e){}
+          // fallback: try alternate keys (strip/add prefix or match by fish name)
+          if(!foundImg && window.Assets && window.Assets.images){
+            const assets = window.Assets.images
+            const lowerName = (fish && fish.name) ? fish.name.toString().toLowerCase().replace(/\s+/g,'_') : ''
+            // try with/without 'fish_' prefix
+            if(!foundImg && assetKey && !assetKey.startsWith('fish_')){
+              try{ foundImg = window.Assets.getImage('fish_' + assetKey) }catch(e){}
+            }
+            // try matching any asset key that contains the fish name
+            if(!foundImg && lowerName){
+              for(const k in assets){ if(k.toLowerCase().includes(lowerName)){ foundImg = assets[k]; break } }
+            }
+          }
+          if(foundImg){ img.src = foundImg.src; img.style.display = 'block'; placeholder.style.display = 'none' }
+          else { img.style.display = 'none'; placeholder.style.display = 'block' }
+
+          panel.classList.remove('hidden'); panel.classList.add('visible'); panel.setAttribute('aria-hidden','false')
+          try{ closeBtn.focus() }catch(e){}
+          window.menuActive = true
+        }catch(e){ console.warn('showCatchWindow failed',e) }
+      }
+
+      function hideCatchWindow(){
+        try{
+          panel.classList.remove('visible'); panel.classList.add('hidden'); panel.setAttribute('aria-hidden','true')
+          window.menuActive = false
+          try{ const canvas = document.getElementById('game-canvas'); if(canvas) canvas.focus() }catch(e){}
+        }catch(e){}
+      }
+
+      closeBtn.addEventListener('click', ()=>{ hideCatchWindow() })
+
+      window.showCatchWindow = showCatchWindow
+      window.hideCatchWindow = hideCatchWindow
+    })();
+    </script>
+
+  </body>
+</html>
+
+    <script>
+    // world - improved: explicit water, dock and house positions
+    window.World = {
+      width:800,
+      height:600,
+      grassY:460,
+      init(w,h){ this.width = w; this.height = h; /* grassY stays constant for now */ },
+      getGrassY(){ return this.grassY },
+      // water sits a little below grass
+      getWaterY(){ return this.grassY + 10 },
+      // dock is centered horizontally by default
+      getDockBounds(){ const dockW = 150; const dockStart = Math.floor(this.width*0.5 - dockW/2); return { start: dockStart, end: dockStart + dockW, width: dockW } },
+      getDockY(){ return this.getWaterY() - 25 },
+      isOnDock(x,y){ const b = this.getDockBounds(); return x >= b.start && x <= b.end },
+      getHousePosition(){ return { x: 120, y: this.grassY - 64 } },
+      getLanternPosition(){ return { x: 160, y: this.grassY - 48 } },
+      update(dt){},
+      drawBackground(ctx){
+        // Get time of day for dynamic colors
+        const timeOfDay = (window.DayNightCycle && window.DayNightCycle.getTime) ? window.DayNightCycle.getTime() : 0.5;
+        
+        // Determine sky colors based on time
+        let skyTop, skyBottom;
+        if (timeOfDay < 0.2 || timeOfDay >= 0.8) {
+          // Night
+          skyTop = '#1a1a3e';
+          skyBottom = '#2a2a4e';
+        } else if (timeOfDay < 0.35) {
+          // Dawn
+          const t = (timeOfDay - 0.2) / 0.15;
+          const r1 = Math.floor(102 + t * 102);
+          const g1 = Math.floor(128 + t * 77);
+          const b1 = 204;
+          const r2 = Math.floor(128 + t * 77);
+          const g2 = Math.floor(102 + t * 128);
+          const b2 = Math.floor(153 + t * 77);
+          skyTop = `rgb(${r1},${g1},${b1})`;
+          skyBottom = `rgb(${r2},${g2},${b2})`;
+        } else if (timeOfDay < 0.65) {
+          // Day
+          skyTop = '#87ceeb';
+          skyBottom = '#a0d3ff';
+        } else if (timeOfDay < 0.8) {
+          // Dusk
+          const t = (timeOfDay - 0.65) / 0.15;
+          const r1 = Math.floor(204 - t * 102);
+          const g1 = Math.floor(102 - t * 51);
+          const b1 = Math.floor(153 - t * 102);
+          const r2 = 255;
+          const g2 = Math.floor(128 - t * 51);
+          const b2 = Math.floor(77 - t * 51);
+          skyTop = `rgb(${r1},${g1},${b1})`;
+          skyBottom = `rgb(${r2},${g2},${b2})`;
+        } else {
+          // Night
+          skyTop = '#1a1a3e';
+          skyBottom = '#2a2a4e';
+        }
+        
+        // Draw sky gradient
+        const g = ctx.createLinearGradient(0, 0, 0, this.grassY);
+        g.addColorStop(0, skyTop);
+        g.addColorStop(1, skyBottom);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, this.width, this.grassY);
+
+        // distant grass / ground
+        ctx.fillStyle = '#36c06a';
+        ctx.fillRect(0, this.grassY, this.width, this.height - this.grassY);
+
+        // water with subtle gradient
+        const wy = this.getWaterY();
+        const waterGrad = ctx.createLinearGradient(0, wy, 0, wy + 120);
+        waterGrad.addColorStop(0, '#2fa0a0'); waterGrad.addColorStop(1, '#258787');
+        ctx.fillStyle = waterGrad;
+        const waterX = Math.floor(this.width * 0.45);
+        const waterW = Math.floor(this.width * 0.5);
+        ctx.fillRect(waterX, wy, waterW, 90);
+
+        // dock
+        const dock = this.getDockBounds();
+        const dockY = this.getDockY();
+        ctx.fillStyle = '#8b5a2b';
+        ctx.fillRect(dock.start, dockY, dock.width, 18);
+        // dock shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(dock.start, dockY + 18, dock.width, 6);
+
+        // optional simple house placeholder
+        const house = this.getHousePosition();
+        ctx.fillStyle = '#7a4';
+        ctx.fillRect(house.x, house.y, 80, 64);
+        ctx.fillStyle = '#443';
+        ctx.fillRect(house.x + 20, house.y + 30, 20, 34);
+      },
+      drawForeground(ctx) { /* no-op for now */ }
+    }
+    </script>
+
+    <script>
+    // player - respect world ground and dock areas
+    window.Player = {
+      x:0,y:0,w:16,h:32,speed:150,
+      init(sx,sy){ this.x = sx || 400; this.y = sy || (window.World.getGrassY() - this.h/2) },
+      update(dt, keys){
+        if(window.menuActive) return
+        let dx=0, dy=0;
+        if(keys['w'] || keys['ArrowUp']) dy -= 1;
+        if(keys['s'] || keys['ArrowDown']) dy += 1;
+        if(keys['a'] || keys['ArrowLeft']) dx -= 1;
+        if(keys['d'] || keys['ArrowRight']) dx += 1;
+        if(dx !== 0 && dy !== 0){ dx *= 0.707; dy *= 0.707 }
+
+        const newX = this.x + dx * this.speed * dt;
+        let newY = this.y + dy * this.speed * dt;
+
+        const waterY = window.World.getWaterY();
+        const grassY = window.World.getGrassY();
+        const dock = window.World.getDockBounds();
+        const dockY = window.World.getDockY();
+        const isOnDockArea = newX >= dock.start && newX <= dock.end;
+
+        if(isOnDockArea){
+          // Constrain vertical position to dock platform
+          const topOfDock = dockY - this.h/2;
+          if(newY > topOfDock) newY = topOfDock;
+          if(newY < topOfDock - 10) newY = topOfDock - 10;
+        } else {
+          // Constrain to ground level (don't enter water)
+          const groundLevel = grassY - this.h/2;
+          if(newY > groundLevel) newY = groundLevel;
+          if(newY < groundLevel - 10) newY = groundLevel - 10;
+        }
+
+        this.x = Math.max(this.w/2, Math.min(window.World.width - this.w/2, newX));
+        this.y = Math.max(this.h/2, Math.min(window.World.height - this.h/2, newY));
+      },
+      draw(ctx){
+        const img = window.Assets.images['player'];
+        if(img) ctx.drawImage(img, this.x - this.w/2, this.y - this.h/2, this.w*2, this.h*2);
+        else { ctx.fillStyle = '#2e9'; ctx.fillRect(this.x - this.w/2, this.y - this.h/2, this.w, this.h) }
+      }
+    }
+  </script>
+
+  <script src="src/assets.js"></script>
+  <script src="src/audio/audioManager.js"></script>
+  <script src="src/audio/audioPlaceholder.js"></script>
+  <script src="src/audio/soundEffects.js"></script>
+  <script src="src/audio/musicManager.js"></script>
+  <script src="src/world/worldRenderer.js"></script>
+  <script src="src/daynightcycle.js"></script>
+  <script src="src/weather.js"></script>
+  <script src="src/cabin.js"></script>
+  <script src="src/journal.js"></script>
+  <script src="src/skyrenderer.js"></script>
+  <script src="src/anomalies.js"></script>
+  <script src="src/screenshake.js"></script>
+  <script src="src/uimanager.js"></script>
+  <script src="src/fishing/castingsystem.js"></script>
+  <script src="src/fishing/baitsystem.js"></script>
+  <script src="src/fishing/fishdata.js"></script>
+  <script src="src/fishing/statisticssystem.js"></script>
+  <script src="src/fishing/reelingsystem.js"></script>
+  <script src="src/fishing/bitedetection.js"></script>
+  <script src="src/fishing/fishingController.js"></script>
+  <script src="src/fishing/fishing.js"></script>
+  <script src="src/gamestate.js"></script>
+  <script src="src/main.js"></script>
+
+  <script>
+  // main loop
+    (function(){
+      const canvas=document.getElementById('game-canvas');
+      const ctx=canvas.getContext('2d');
+      let last=performance.now();
+      const fpsEl=document.getElementById('fps');
+      const keys={};
+      window.addEventListener('keydown',e=>{keys[e.key]=true});
+      window.addEventListener('keyup',e=>{keys[e.key]=false});
+
+      async function init(){
+        // Delegate to centralized Main initializer when available
+        if(window.Main && typeof window.Main.init === 'function'){
+          await window.Main.init()
+        } else {
+          // fallback: do minimal local initialization
+          try{ await window.Assets.loadAll() }catch(e){}
+          if(window.World && typeof window.World.init === 'function') window.World.init(canvas.width,canvas.height)
+          if(window.Player && typeof window.Player.init === 'function') window.Player.init(canvas.width/2, window.World.getGrassY()-16)
+          if(window.FishingController && window.FishingController.init) window.FishingController.init()
+          if(window.CastingSystem && window.CastingSystem.init) window.CastingSystem.init()
+        }
+        
+        // Resume audio context on first interaction (browser autoplay policy)
+        const resumeAudio = () => {
+          if(window.AudioManager && window.AudioManager.resumeContext) window.AudioManager.resumeContext()
+          document.removeEventListener('click', resumeAudio)
+          document.removeEventListener('keydown', resumeAudio)
+        }
+        document.addEventListener('click', resumeAudio)
+        document.addEventListener('keydown', resumeAudio)
+        
+        // Start menu music
+        if(window.MusicManager && window.MusicManager.playMenuMusic) window.MusicManager.playMenuMusic()
+        
+        requestAnimationFrame(loop)
+      }
+
+      function loop(now){
+        const dt=Math.min(0.05,(now-last)/1000);
+        last=now;
+        update(dt);
+        draw();
+        if(fpsEl) fpsEl.textContent='FPS: '+Math.round(1/dt);
+        requestAnimationFrame(loop)
+      }
+
+      function update(dt){
+        window.Player.update(dt,keys);
+        window.World.update(dt);
+        
+        // Update day/night and weather
+        if(window.DayNightCycle && window.DayNightCycle.update) window.DayNightCycle.update(dt)
+        if(window.Weather && window.Weather.update) window.Weather.update(dt)
+        
+        // Update music based on time and weather
+        if(window.MusicManager && window.MusicManager.update){
+          const timeOfDay = (window.DayNightCycle && window.DayNightCycle.getTime) ? window.DayNightCycle.getTime() : 0.5
+          const weatherState = (window.Weather && window.Weather.getWeatherState) ? window.Weather.getWeatherState() : 'clear'
+          window.MusicManager.update(timeOfDay, weatherState)
+        }
+        
+        // Update UI
+        if(window.UIManager && window.UIManager.update) window.UIManager.update(dt)
+        
+        // Update cabin
+        if(window.Cabin && window.Cabin.update) window.Cabin.update(dt)
+        
+        // Update anomalies
+        if(window.Anomalies && window.Anomalies.update) window.Anomalies.update(dt)
+        
+        // Update screen shake
+        if(window.ScreenShake && window.ScreenShake.update) window.ScreenShake.update(dt)
+        
+        // Update sky renderer
+        if(window.SkyRenderer && window.SkyRenderer.update) window.SkyRenderer.update(dt)
+        
+        // Update fishing systems
+        if(window.CastingSystem && window.CastingSystem.update) window.CastingSystem.update(dt, null, window.FishingController ? window.FishingController.getState() : 'idle')
+        if(window.FishingController) window.FishingController.update(dt)
+        
+        // Check for anomalies near player
+        if(window.Anomalies && window.Anomalies.checkForAnomalies && window.Player){
+          window.Anomalies.checkForAnomalies(window.Player.x, window.Player.y)
+        }
+      }
+
+      function draw(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        
+        // Apply screen shake
+        const shake = (window.ScreenShake && window.ScreenShake.getOffset) ? window.ScreenShake.getOffset() : {x:0, y:0}
+        ctx.save()
+        ctx.translate(shake.x, shake.y)
+        
+        // Get time of day for rendering
+        const timeOfDay = (window.DayNightCycle && window.DayNightCycle.getTime) ? window.DayNightCycle.getTime() : 0.5
+        
+        // Draw world terrain - use WorldRenderer if available, otherwise fallback
+        try {
+          if(window.WorldRenderer && window.WorldRenderer.draw) {
+            window.WorldRenderer.draw(ctx, timeOfDay)
+          }
+        } catch(e) {
+          console.error('World rendering error:', e)
+        }
+        
+        // Draw celestial bodies (sun, moon, stars) - BEFORE player so they appear behind
+        try {
+          const waterY = (window.World && window.World.getWaterY) ? window.World.getWaterY() : 480
+          if(window.SkyRenderer && window.SkyRenderer.draw) window.SkyRenderer.draw(ctx, timeOfDay, waterY)
+        } catch(e) {}
+        
+        // Draw game objects
+        try {
+          if(window.Player && window.Player.draw) window.Player.draw(ctx)
+        } catch(e) {}
+        
+        try {
+          if(window.World && window.World.drawForeground) window.World.drawForeground(ctx)
+        } catch(e) {}
+        
+        // Draw fishing rod, line, and bobber (AFTER world so bobber appears on top of water)
+        try{
+          const FC = window.FishingController
+          const CS = window.CastingSystem
+          const rodX = (window.Player && window.Player.x) ? window.Player.x + 8 : canvas.width/2
+          const rodY = (window.Player && window.Player.y) ? window.Player.y - 8 : canvas.height/2
+          const fstate = FC ? FC.getState() : 'idle'
+          const isBite = FC ? FC.isBiting() : false
+          if(CS && CS.draw) CS.draw(ctx, rodX, rodY, fstate, isBite)
+        }catch(e){ console.error('Fishing draw error:', e) }
+        
+        // Draw weather effects
+        try {
+          if(window.Weather && window.Weather.draw) window.Weather.draw()
+        } catch(e) {}
+        
+        // Draw anomalies
+        try {
+          if(window.Anomalies && window.Anomalies.draw) window.Anomalies.draw(ctx)
+        } catch(e) {}
+        
+        // Draw cabin overlay
+        try {
+          if(window.Cabin && window.Cabin.draw) window.Cabin.draw()
+        } catch(e) {}
+        
+        // End screen shake
+        ctx.restore()
+        
+        // Draw UI (after screen shake)
+        try {
+          if(window.UIManager && window.UIManager.draw) window.UIManager.draw(ctx)
+        } catch(e) {}
+      }
+
+      init().catch(e=>console.error(e))
+    })();
+    </script>
+
+    <script>
+    // Menu interactions (file:// friendly)
+    (function(){
+      const menu = document.getElementById('main-menu');
+  const howtoPanel = document.getElementById('howto-panel');
+  const creditsPanel = document.getElementById('credits-panel');
+  const settingsPanel = document.getElementById('settings-panel');
+  const creditsBtn = document.getElementById('credits-btn');
+  const settingsBtn = document.getElementById('settings-btn');
+  const creditsBack = document.getElementById('credits-back');
+  const settingsBack = document.getElementById('settings-back');
+  const peacefulToggle = document.getElementById('peaceful-toggle');
+      const startBtn = document.getElementById('start-btn');
+      const howtoBtn = document.getElementById('howto-btn');
+      const howtoBack = document.getElementById('howto-back');
+      const quit = document.getElementById('quit');
+
+  function showMenu(){ try{ console.log('menu: showMenu') }catch(e){} try{ menu.classList.remove('hidden'); menu.classList.add('visible'); menu.setAttribute('aria-hidden','false') }catch(e){ console.error('showMenu error',e) } }
+  function hideMenu(){
+    try{ console.log('menu: hideMenu') }catch(e){}
+    // If the currently focused element is inside the menu, blur it so it won't be hidden from assistive tech
+    try{ const ae = document.activeElement; if(ae && menu.contains(ae)) ae.blur() }catch(e){}
+    try{ menu.classList.remove('visible'); menu.classList.add('hidden'); menu.setAttribute('aria-hidden','true') }catch(e){ console.error('hideMenu error',e) }
+  }
+  // track whether menu/UI is active so gameplay input can be ignored
+  window.menuActive = false
+  const _oldShowMenu = showMenu
+  const _oldHideMenu = hideMenu
+  showMenu = function(){ window.menuActive = true; _oldShowMenu(); if(window.MusicManager && window.MusicManager.playMenuMusic) window.MusicManager.playMenuMusic() }
+  hideMenu = function(){ window.menuActive = false; _oldHideMenu() }
+  function showHowTo(){ howtoPanel.classList.remove('hidden'); howtoPanel.classList.add('visible'); howtoPanel.setAttribute('aria-hidden','false'); howtoBack.focus() }
+  function hideHowTo(){ howtoPanel.classList.remove('visible'); howtoPanel.classList.add('hidden'); howtoPanel.setAttribute('aria-hidden','true') }
+  function showCredits(){ creditsPanel.classList.remove('hidden'); creditsPanel.classList.add('visible'); creditsPanel.setAttribute('aria-hidden','false'); creditsBack.focus() }
+  function hideCredits(){ creditsPanel.classList.remove('visible'); creditsPanel.classList.add('hidden'); creditsPanel.setAttribute('aria-hidden','true') }
+  function showSettings(){ settingsPanel.classList.remove('hidden'); settingsPanel.classList.add('visible'); settingsPanel.setAttribute('aria-hidden','false'); settingsBack.focus() }
+  function hideSettings(){ settingsPanel.classList.remove('visible'); settingsPanel.classList.add('hidden'); settingsPanel.setAttribute('aria-hidden','true') }
+
+  startBtn.addEventListener('click', ()=>{ try{ console.log('menu: startBtn clicked') }catch(e){} if(window.Main && typeof window.Main.resetGame === 'function') window.Main.resetGame(); hideMenu(); /* gameplay already running in background loop */ })
+  howtoBtn.addEventListener('click', ()=>{ hideMenu(); showHowTo(); })
+  howtoBack.addEventListener('click', ()=>{ hideHowTo(); showMenu(); })
+  creditsBtn.addEventListener('click', ()=>{ hideMenu(); showCredits(); })
+  creditsBack.addEventListener('click', ()=>{ hideCredits(); showMenu(); })
+  settingsBtn.addEventListener('click', ()=>{ hideMenu(); showSettings(); })
+  settingsBack.addEventListener('click', ()=>{ hideSettings(); showMenu(); })
+  quit.addEventListener('click', ()=>{ window.close && window.close() })
+
+  // settings state
+  window.GameSettings = window.GameSettings || { peacefulMode: false }
+  function updatePeacefulLabel(){ peacefulToggle.textContent = 'Peaceful Mode: ' + (window.GameSettings.peacefulMode ? 'On' : 'Off') }
+  peacefulToggle.addEventListener('click', ()=>{ window.GameSettings.peacefulMode = !window.GameSettings.peacefulMode; updatePeacefulLabel(); })
+  updatePeacefulLabel()
+
+      // keyboard navigation and ESC behavior
+      const menuSelectable = [ startBtn, ...Array.from(document.querySelectorAll('#main-menu .menu-list li')) ]
+      let selectedIndex = 0
+      function updateSelection(){
+        menuSelectable.forEach((el,idx)=>{
+          if(!el) return
+          if(idx === selectedIndex) el.classList.add('selected')
+          else el.classList.remove('selected')
+        })
+      }
+      updateSelection()
+
+      window.addEventListener('keydown', (e)=>{
+        // Universal ESC handling: close panels or open menu when in-game
+        if(e.key === 'Escape'){
+          if(typeof journalPanel !== 'undefined' && journalPanel.classList.contains('visible')){ if(window.Journal) window.Journal.close(); showMenu(); updateSelection(); return }
+          if(typeof tackleboxPanel !== 'undefined' && tackleboxPanel.classList.contains('visible')){ hideTacklebox(); showMenu(); updateSelection(); return }
+          if(howtoPanel.classList.contains('visible')){ hideHowTo(); showMenu(); updateSelection(); return }
+          if(creditsPanel.classList.contains('visible')){ hideCredits(); showMenu(); updateSelection(); return }
+          if(settingsPanel.classList.contains('visible')){ hideSettings(); showMenu(); updateSelection(); return }
+          if(menu.classList.contains('visible')){ /* already showing menu */ return }
+          // If nothing visible, open menu (pause)
+          showMenu(); updateSelection(); return
+        }
+
+        // If the main menu is visible, handle arrow/WASD navigation and Enter/Space to activate
+        if(menu.classList.contains('visible')){
+          if(e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W'){
+            selectedIndex = (selectedIndex - 1 + menuSelectable.length) % menuSelectable.length
+            updateSelection(); e.preventDefault(); return
+          }
+          if(e.key === 'ArrowDown' || e.key === 's' || e.key === 'S'){
+            selectedIndex = (selectedIndex + 1) % menuSelectable.length
+            updateSelection(); e.preventDefault(); return
+          }
+          if(e.key === 'Enter' || e.key === ' '){
+            const el = menuSelectable[selectedIndex]
+            if(el) el.click()
+            e.preventDefault(); return
+          }
+        }
+      })
+
+      // Tacklebox wiring: set up handlers lazily and defensively
+      const tackleboxPanel = document.getElementById('tacklebox-panel')
+      const tackleboxClose = document.getElementById('tacklebox-close')
+      window.tackleboxOpen = false
+      function showTacklebox(){ setupTacklebox(); tackleboxPanel.classList.remove('hidden'); tackleboxPanel.classList.add('visible'); tackleboxPanel.setAttribute('aria-hidden','false'); window.tackleboxOpen = true; window.menuActive = true }
+      function hideTacklebox(){
+        // If the currently focused element is inside the tacklebox, move focus back to a sensible target
+        try{
+          const ae = document.activeElement
+          if(ae && tackleboxPanel.contains(ae)){
+            // prefer returning focus to the Start button if menu is visible, otherwise to the canvas
+            if(menu && menu.classList.contains('visible')){
+              try{ startBtn.focus() }catch(e){}
+            } else {
+              try{ const canvas = document.getElementById('game-canvas'); if(canvas && typeof canvas.focus === 'function') canvas.focus() }catch(e){}
+            }
+          }
+        }catch(e){}
+        tackleboxPanel.classList.remove('visible'); tackleboxPanel.classList.add('hidden'); tackleboxPanel.setAttribute('aria-hidden','true'); window.tackleboxOpen = false; window.menuActive = false
+      }
+      function toggleTacklebox(){ if(window.tackleboxOpen) hideTacklebox(); else showTacklebox() }
+      tackleboxClose.addEventListener('click', ()=>{ hideTacklebox(); showMenu(); })
+
+      // Journal wiring
+      const journalPanel = document.getElementById('journal-panel')
+      const journalClose = document.getElementById('journal-close')
+      journalClose.addEventListener('click', ()=>{ if(window.Journal) window.Journal.close(); showMenu(); })
+
+      // Setup function queries DOM when needed and wires up tiles safely.
+      function setupTacklebox(){
+        const nodeList = document.querySelectorAll('.bait-tile')
+        let tiles = []
+        try{ tiles = Array.prototype.slice.call(nodeList || []) }catch(e){ tiles = [] }
+        if(!tiles || tiles.length === 0) return tiles
+
+        // avoid wiring twice
+        if(tiles.__wired) return tiles
+        tiles.__wired = true
+
+        tiles.forEach((tile)=>{
+          tile.addEventListener('click', ()=>{
+            tiles.forEach(i=>i.classList.remove('selected'))
+            tile.classList.add('selected')
+            const baitKey = tile.dataset.bait
+            window.SelectedBait = baitKey
+            if(window.BaitSystem){
+              if(typeof window.BaitSystem.selectBaitByName === 'function'){
+                try{ window.BaitSystem.selectBaitByName(baitKey) }catch(e){}
+              } else if(typeof window.BaitSystem.getBaitInventory === 'function'){
+                const inv = window.BaitSystem.getBaitInventory()
+                const found = inv.findIndex(b => (b.name||'').toString().toLowerCase() === baitKey.toString().toLowerCase())
+                if(found >= 0 && typeof window.BaitSystem.selectBait === 'function'){
+                  try{ window.BaitSystem.selectBait(found) }catch(e){}
+                }
+              }
+            }
+          })
+        })
+
+        // initialize selection to currently selected bait if present (safe access)
+        let baitObj = null
+        try{ if(window.BaitSystem && typeof window.BaitSystem.getCurrentBait === 'function') baitObj = window.BaitSystem.getCurrentBait() }catch(e){ baitObj = null }
+        const currentKey = (window.SelectedBait || (baitObj && (baitObj.name || baitObj.asset || baitObj)) || '').toString().toLowerCase()
+        if(currentKey){
+          const found = tiles.find(t => (t.dataset.bait||'').toString().toLowerCase() === currentKey)
+          if(found) { tiles.forEach(i=>i.classList.remove('selected')); found.classList.add('selected') }
+        }
+        // make tiles keyboard-interactive (Enter/Space triggers click)
+        tiles.forEach(t => {
+          if(!t.hasAttribute('tabindex')) t.setAttribute('tabindex','0')
+          t.addEventListener('keydown', (ev) => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); t.click() } })
+        })
+
+        // focus first tile for accessibility
+        try{ const first = tiles[0]; if(first && typeof first.focus === 'function') first.focus() }catch(e){}
+
+        return tiles
+      }
+
+      // Toggle with B key (listen globally). Only toggle when not on menu overlays input fields.
+      window.addEventListener('keydown', (e)=>{
+        if(e.key === 'b' || e.key === 'B'){
+          // If other overlays open, close them first
+          const anyOverlayOpen = howtoPanel.classList.contains('visible') || creditsPanel.classList.contains('visible') || settingsPanel.classList.contains('visible') || menu.classList.contains('visible')
+          if(anyOverlayOpen){
+            // If menu is visible and B pressed, open tacklebox from menu
+            if(menu.classList.contains('visible')){ hideMenu(); showTacklebox(); }
+            return
+          }
+          // Otherwise toggle tacklebox while playing
+          toggleTacklebox()
+        }
+      })
+
+      // Fishing controls: SPACE acts as Ready / Cast / Hook / Reel depending on state
+      window.addEventListener('keydown', (e)=>{
+        if(e.code === 'Space' || e.key === ' '){
+          // Ignore if overlays/menu are open
+          if(window.menuActive || window.tackleboxOpen) return
+          const FC = window.FishingController
+          if(!FC) return
+          const s = FC.getState()
+          if(s === 'idle') { FC.enterReady() }
+          else if(s === 'ready') { FC.cast() }
+          else if(s === 'casting') { FC.finalizeCast() }
+          else if(s === 'biting') { FC.attemptHookSet() }
+          else if(s === 'reeling') { FC.manualReel() }
+          e.preventDefault()
+        }
+      })
+
+      // Cabin mechanic: Press H to rest and advance to next day
+      window.addEventListener('keydown', (e)=>{
+        if((e.key === 'h' || e.key === 'H') && !window.menuActive && !window.Cabin.isInCabin()){
+          window.Cabin.enterCabin()
+          e.preventDefault()
+        }
+      })
+
+      // Journal: Press TAB to open/close
+      window.addEventListener('keydown', (e)=>{
+        if(e.key === 'Tab' && !window.menuActive){
+          if(window.Journal && typeof window.Journal.toggle === 'function'){
+            window.Journal.toggle()
+          }
+          e.preventDefault()
+        }
+      })
+
+      // Start with menu visible; it will hide when Start/HowTo is clicked
+      showMenu();
+      })();
+    </script>
+
+  </body>
+</html>

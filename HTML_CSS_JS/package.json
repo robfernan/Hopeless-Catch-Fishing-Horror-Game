@@ -1,0 +1,36 @@
+{
+  "name": "hopeless-catch-web",
+  "version": "1.1.0",
+  "description": "A cozy pixel art fishing game with a subtle secret - Web version",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=8000 --entry-file=index.html",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/robfernan/Hopeless-Catch-Fishing-Horror-Game.git"
+  },
+  "keywords": [
+    "game",
+    "fishing",
+    "horror",
+    "pixel-art",
+    "html5",
+    "canvas",
+    "javascript",
+    "web-game"
+  ],
+  "author": "MungDaal321 / robfernan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/robfernan/Hopeless-Catch-Fishing-Horror-Game/issues"
+  },
+  "homepage": "https://github.com/robfernan/Hopeless-Catch-Fishing-Horror-Game#readme",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
