@@ -1,158 +1,246 @@
-// soundEffects.js - Sound effect library and management
+// SoundEffects.js - 8-bit style sound effects using Web Audio API
 (function(){
   const SoundEffects = {
-    // Sound effect definitions
-    effects: {
-      // Fishing sounds
-      cast: { name: 'cast', url: 'assets/audio/sfx/cast.mp3', volume: 0.7 },
-      bite: { name: 'bite', url: 'assets/audio/sfx/bite.mp3', volume: 0.8 },
-      hook: { name: 'hook', url: 'assets/audio/sfx/hook.mp3', volume: 0.9 },
-      reel: { name: 'reel', url: 'assets/audio/sfx/reel.mp3', volume: 0.6 },
-      caught: { name: 'caught', url: 'assets/audio/sfx/caught.mp3', volume: 0.9 },
-      lineBreak: { name: 'lineBreak', url: 'assets/audio/sfx/line_break.mp3', volume: 0.8 },
-      
-      // UI sounds
-      menuSelect: { name: 'menuSelect', url: 'assets/audio/sfx/menu_select.mp3', volume: 0.5 },
-      menuBack: { name: 'menuBack', url: 'assets/audio/sfx/menu_back.mp3', volume: 0.5 },
-      buttonClick: { name: 'buttonClick', url: 'assets/audio/sfx/button_click.mp3', volume: 0.6 },
-      
-      // Horror sounds
-      glitch: { name: 'glitch', url: 'assets/audio/sfx/glitch.mp3', volume: 0.7 },
-      anomaly: { name: 'anomaly', url: 'assets/audio/sfx/anomaly.mp3', volume: 0.6 },
-      strangeSound: { name: 'strangeSound', url: 'assets/audio/sfx/strange_sound.mp3', volume: 0.5 }
-    },
+    audioContext: null,
+    volume: 0.8,
     
-    // Ambient sounds
-    ambient: {
-      waterLoop: { name: 'waterLoop', url: 'assets/audio/sfx/water_loop.mp3', volume: 0.3 },
-      windLoop: { name: 'windLoop', url: 'assets/audio/sfx/wind_loop.mp3', volume: 0.2 },
-      rainLoop: { name: 'rainLoop', url: 'assets/audio/sfx/rain_loop.mp3', volume: 0.4 }
-    },
-    
-    isLoaded: false,
-    
-    /**
-     * Load all sound effects
-     */
-    async loadAll() {
-      if (!window.AudioManager || !window.AudioManager.isInitialized) {
-        console.warn('AudioManager not initialized');
-        return false;
+    init() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          this.audioContext = new AudioContext();
+          console.log('✅ Sound effects initialized');
+        } else {
+          console.warn('⚠️ Web Audio API not available');
+        }
+      } catch (e) {
+        console.error('❌ Sound effects initialization failed:', e);
       }
+    },
+    
+    // Play a simple beep sound
+    playBeep(frequency = 800, duration = 100, type = 'sine') {
+      if (!this.audioContext) return;
       
       try {
-        // Load all effects
-        for (const key in this.effects) {
-          const effect = this.effects[key];
-          try {
-            await window.AudioManager.loadAudio(effect.name, effect.url);
-          } catch (e) {
-            console.warn(`Failed to load sound effect: ${effect.name}`);
-          }
-        }
+        const now = this.audioContext.currentTime;
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
         
-        // Load all ambient sounds
-        for (const key in this.ambient) {
-          const sound = this.ambient[key];
-          try {
-            await window.AudioManager.loadAudio(sound.name, sound.url);
-          } catch (e) {
-            console.warn(`Failed to load ambient sound: ${sound.name}`);
-          }
-        }
+        osc.connect(gain);
+        gain.connect(this.audioContext.destination);
         
-        this.isLoaded = true;
-        console.log('🔊 Sound effects loaded');
-        return true;
+        osc.frequency.value = frequency;
+        osc.type = type;
+        
+        gain.gain.setValueAtTime(this.volume * 0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
+        
+        osc.start(now);
+        osc.stop(now + duration / 1000);
       } catch (e) {
-        console.error('Failed to load sound effects:', e);
-        return false;
+        console.warn('⚠️ Beep sound failed:', e);
       }
     },
     
-    /**
-     * Play a fishing sound effect
-     */
-    playFishingSound(soundName) {
-      if (!this.isLoaded) return;
+    // Casting sound - whoosh
+    playCast() {
+      if (!this.audioContext) return;
       
-      const effect = this.effects[soundName];
-      if (!effect) {
-        console.warn(`Unknown fishing sound: ${soundName}`);
-        return;
-      }
-      
-      window.AudioManager.playSound(effect.name, effect.volume);
-    },
-    
-    /**
-     * Play a UI sound effect
-     */
-    playUISound(soundName) {
-      if (!this.isLoaded) return;
-      
-      const effect = this.effects[soundName];
-      if (!effect) {
-        console.warn(`Unknown UI sound: ${soundName}`);
-        return;
-      }
-      
-      window.AudioManager.playSound(effect.name, effect.volume);
-    },
-    
-    /**
-     * Play a horror sound effect
-     */
-    playHorrorSound(soundName) {
-      if (!this.isLoaded) return;
-      
-      const effect = this.effects[soundName];
-      if (!effect) {
-        console.warn(`Unknown horror sound: ${soundName}`);
-        return;
-      }
-      
-      window.AudioManager.playSound(effect.name, effect.volume);
-    },
-    
-    /**
-     * Play ambient sound (looping)
-     */
-    playAmbientSound(soundName) {
-      if (!this.isLoaded) return;
-      
-      const sound = this.ambient[soundName];
-      if (!sound) {
-        console.warn(`Unknown ambient sound: ${soundName}`);
-        return;
-      }
-      
-      window.AudioManager.playAmbient(sound.name, sound.volume);
-    },
-    
-    /**
-     * Stop ambient sound
-     */
-    stopAmbientSound(soundName) {
-      const sound = this.ambient[soundName];
-      if (sound) {
-        window.AudioManager.stopAmbient(sound.name);
+      try {
+        const now = this.audioContext.currentTime;
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioContext.destination);
+        
+        // Sweep from high to low frequency
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.2);
+        osc.type = 'triangle';
+        
+        gain.gain.setValueAtTime(this.volume * 0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        
+        osc.start(now);
+        osc.stop(now + 0.2);
+        
+        console.log('🎣 Cast sound');
+      } catch (e) {
+        console.warn('⚠️ Cast sound failed:', e);
       }
     },
     
-    /**
-     * Stop all ambient sounds
-     */
-    stopAllAmbient() {
-      window.AudioManager.stopAllAmbient();
+    // Bite sound - alert beep
+    playBite() {
+      if (!this.audioContext) return;
+      
+      try {
+        const now = this.audioContext.currentTime;
+        
+        // Two quick beeps
+        for (let i = 0; i < 2; i++) {
+          const osc = this.audioContext.createOscillator();
+          const gain = this.audioContext.createGain();
+          
+          osc.connect(gain);
+          gain.connect(this.audioContext.destination);
+          
+          osc.frequency.value = 1000;
+          osc.type = 'sine';
+          
+          const startTime = now + (i * 0.15);
+          gain.gain.setValueAtTime(this.volume * 0.3, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.1);
+          
+          osc.start(startTime);
+          osc.stop(startTime + 0.1);
+        }
+        
+        console.log('🐟 Bite sound');
+      } catch (e) {
+        console.warn('⚠️ Bite sound failed:', e);
+      }
     },
     
-    /**
-     * Get effect volume
-     */
-    getEffectVolume(soundName) {
-      const effect = this.effects[soundName];
-      return effect ? effect.volume : 1.0;
+    // Reel sound - mechanical clicking
+    playReel() {
+      if (!this.audioContext) return;
+      
+      try {
+        const now = this.audioContext.currentTime;
+        
+        // Multiple clicks for reel effect
+        for (let i = 0; i < 3; i++) {
+          const osc = this.audioContext.createOscillator();
+          const gain = this.audioContext.createGain();
+          
+          osc.connect(gain);
+          gain.connect(this.audioContext.destination);
+          
+          osc.frequency.value = 600 + (i * 100);
+          osc.type = 'square';
+          
+          const startTime = now + (i * 0.08);
+          gain.gain.setValueAtTime(this.volume * 0.2, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.06);
+          
+          osc.start(startTime);
+          osc.stop(startTime + 0.06);
+        }
+        
+        console.log('⚙️ Reel sound');
+      } catch (e) {
+        console.warn('⚠️ Reel sound failed:', e);
+      }
+    },
+    
+    // Catch sound - success chime
+    playCatch() {
+      if (!this.audioContext) return;
+      
+      try {
+        const now = this.audioContext.currentTime;
+        
+        // Ascending notes for success
+        const notes = [800, 1000, 1200];
+        
+        for (let i = 0; i < notes.length; i++) {
+          const osc = this.audioContext.createOscillator();
+          const gain = this.audioContext.createGain();
+          
+          osc.connect(gain);
+          gain.connect(this.audioContext.destination);
+          
+          osc.frequency.value = notes[i];
+          osc.type = 'sine';
+          
+          const startTime = now + (i * 0.15);
+          gain.gain.setValueAtTime(this.volume * 0.4, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+          
+          osc.start(startTime);
+          osc.stop(startTime + 0.2);
+        }
+        
+        console.log('✨ Catch sound');
+      } catch (e) {
+        console.warn('⚠️ Catch sound failed:', e);
+      }
+    },
+    
+    // UI click sound
+    playClick() {
+      if (!this.audioContext) return;
+      
+      try {
+        const now = this.audioContext.currentTime;
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audioContext.destination);
+        
+        osc.frequency.value = 500;
+        osc.type = 'sine';
+        
+        gain.gain.setValueAtTime(this.volume * 0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+        
+        osc.start(now);
+        osc.stop(now + 0.05);
+      } catch (e) {
+        console.warn('⚠️ Click sound failed:', e);
+      }
+    },
+    
+    // Rare fish catch sound - special chime
+    playRareCatch() {
+      if (!this.audioContext) return;
+      
+      try {
+        const now = this.audioContext.currentTime;
+        
+        // Higher, more impressive notes
+        const notes = [1200, 1400, 1600, 1400];
+        
+        for (let i = 0; i < notes.length; i++) {
+          const osc = this.audioContext.createOscillator();
+          const gain = this.audioContext.createGain();
+          
+          osc.connect(gain);
+          gain.connect(this.audioContext.destination);
+          
+          osc.frequency.value = notes[i];
+          osc.type = 'sine';
+          
+          const startTime = now + (i * 0.12);
+          gain.gain.setValueAtTime(this.volume * 0.5, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.25);
+          
+          osc.start(startTime);
+          osc.stop(startTime + 0.25);
+        }
+        
+        console.log('🌟 Rare catch sound');
+      } catch (e) {
+        console.warn('⚠️ Rare catch sound failed:', e);
+      }
+    },
+    
+    setVolume(volume) {
+      this.volume = Math.max(0, Math.min(1, volume));
+    },
+    
+    getVolume() {
+      return this.volume;
+    },
+    
+    dispose() {
+      if (this.audioContext) {
+        this.audioContext.close();
+      }
     }
   };
   
