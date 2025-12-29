@@ -86,15 +86,18 @@ Hopeless-Catch-Fishing-Horror-Game/
 
 ## 🚀 Quick Start
 
-### Web Version
+### Play Online (Easiest)
+Visit the game on itch.io: [Hopeless Catch on itch.io](https://robfernan.itch.io/hopeless-catch)
+
+### Web Version (Local)
 1. Clone this repository
 2. Navigate to `HTML_CSS_JS/`
 3. Open `index.html` directly in your web browser (no server needed!)
 4. Press SPACE to start fishing!
 
-### Love2D Version
+### Love2D Version (Desktop)
 1. Install [Love2D](https://love2d.org/)
-2. Download `Love2d Version/HopelessCatch.love`
+2. Download from itch.io or `Love2d Version/HopelessCatch.love`
 3. Run with Love2D or drag onto Love2D executable
 4. Enjoy the complete experience!
 

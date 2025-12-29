@@ -44,7 +44,24 @@ git push -u origin main
 
 ## 📋 Short Term (Week 1-2)
 
-### 4. **Create GitHub Releases**
+### 4. **Create itch.io Project** (15 minutes)
+This is the best way to distribute your game:
+
+1. Go to [itch.io](https://itch.io)
+2. Sign up or log in
+3. Click "Create new project"
+4. Fill in details:
+   - **Title**: Hopeless Catch
+   - **Description**: A cozy pixel art fishing game with a subtle secret
+   - **Kind of project**: HTML (for web version)
+   - **Uploads**: Upload `HTML_CSS_JS/` folder as a zip
+   - **Embed options**: Check "Embed in page"
+   - **Also upload**: Love2D version as separate download
+5. Add tags: game, fishing, horror, pixel-art, html5
+6. Set to public
+7. Get your itch.io URL
+
+### 5. **Create GitHub Releases** (5 minutes)
 ```bash
 # Tag the current version
 git tag -a v1.1.0 -m "Version 1.1.0 - Initial public release"
@@ -52,28 +69,22 @@ git push origin v1.1.0
 
 # Create release on GitHub with:
 # - Release notes
+# - Link to itch.io page
 # - Download links for Love2D version
-# - Web version link
 ```
 
-### 5. **Set Up GitHub Pages (Optional but Recommended)**
-This allows players to play the web version directly from GitHub:
-
-1. Go to repository Settings → Pages
-2. Select "Deploy from a branch"
-3. Choose `main` branch and `/HTML_CSS_JS` folder
-4. GitHub will provide a URL like: `https://robfernan.github.io/Hopeless-Catch-Fishing-Horror-Game/`
-5. Update README with this link
-
-### 6. **Create Additional Documentation**
-- [ ] **CHANGELOG.md** - Version history and changes
-- [ ] **ROADMAP.md** - Future features and improvements
-- [ ] **FAQ.md** - Common questions and answers
-- [ ] **TROUBLESHOOTING.md** - Common issues and solutions
+### 6. **Update README with itch.io Link**
+Add to README:
+```markdown
+## 🎮 Play Now
+- **Web Version**: [Play on itch.io](https://robfernan.itch.io/hopeless-catch)
+- **Desktop Version**: [Download on itch.io](https://robfernan.itch.io/hopeless-catch)
+```
 
 ### 7. **Set Up Community Features**
-- [ ] Enable Discussions (for community chat)
-- [ ] Enable Issues (already configured with templates)
+- [ ] Enable Discussions on GitHub (for community chat)
+- [ ] Monitor GitHub Issues (for bug reports)
+- [ ] Check itch.io comments (for player feedback)
 - [ ] Create a Discussions category for:
   - General discussion
   - Fishing tips and tricks
@@ -86,14 +97,15 @@ This allows players to play the web version directly from GitHub:
 ## 🚀 Medium Term (Week 2-4)
 
 ### 8. **Promote the Project**
-- [ ] Share on Reddit (r/gamedev, r/indiegames, r/PixelArt)
-- [ ] Post on itch.io (create project page)
+- [ ] Share itch.io link on Reddit (r/gamedev, r/indiegames, r/PixelArt)
+- [ ] Post on game dev communities
 - [ ] Share on Twitter/X with #gamedev #indiegame #pixelart
-- [ ] Add to game development communities
+- [ ] Add to game development Discord servers
 - [ ] Consider Game Jams if applicable
 
 ### 9. **Gather Community Feedback**
-- [ ] Monitor issues and discussions
+- [ ] Monitor itch.io comments
+- [ ] Monitor GitHub issues and discussions
 - [ ] Respond to bug reports promptly
 - [ ] Collect feature requests
 - [ ] Track player feedback

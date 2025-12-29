@@ -4,7 +4,13 @@ Quick reference guide for players and developers.
 
 ## 🎮 For Players
 
-### Play the Web Version (Easiest)
+### Play Online (Recommended)
+Visit: [Hopeless Catch on itch.io](https://robfernan.itch.io/hopeless-catch)
+- Play directly in your browser
+- No installation needed
+- Automatic updates
+
+### Play the Web Version (Local)
 1. Clone or download the repository
 2. Navigate to `HTML_CSS_JS/` folder
 3. Open `index.html` in your web browser
@@ -12,7 +18,7 @@ Quick reference guide for players and developers.
 
 ### Play the Desktop Version
 1. Install [Love2D](https://love2d.org/) (free, open source)
-2. Download `Love2d Version/HopelessCatch.love`
+2. Download from itch.io or use `Love2d Version/HopelessCatch.love`
 3. Open with Love2D or drag onto the Love2D executable
 4. Enjoy the complete experience!
 
