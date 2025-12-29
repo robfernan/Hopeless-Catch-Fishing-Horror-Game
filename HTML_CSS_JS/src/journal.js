@@ -17,6 +17,7 @@
     
     init() {
       this.isOpen = false;
+      // Initialize with defaults first
       this.catches = [];
       this.stats = {
         totalCatches: 0,
@@ -29,7 +30,9 @@
         totalPlayTime: 0,
         currentDay: 1
       };
+      // Then load from storage (this will override defaults if data exists)
       this.loadFromStorage();
+      console.log('📔 Journal initialized with ' + this.catches.length + ' catches');
     },
     
     toggle() {
@@ -194,6 +197,21 @@
       };
       this.saveToStorage();
       console.log('📔 Journal stats cleared');
+    },
+    
+    // Debug function to check if data is being saved
+    debugSaveStatus() {
+      const data = localStorage.getItem('hopelesscatch_journal');
+      if (data) {
+        const parsed = JSON.parse(data);
+        console.log('✅ Journal data found in localStorage');
+        console.log('   Catches:', parsed.catches ? parsed.catches.length : 0);
+        console.log('   Total Catches:', parsed.stats ? parsed.stats.totalCatches : 0);
+        return true;
+      } else {
+        console.warn('❌ No journal data in localStorage');
+        return false;
+      }
     },
     
     draw() {
