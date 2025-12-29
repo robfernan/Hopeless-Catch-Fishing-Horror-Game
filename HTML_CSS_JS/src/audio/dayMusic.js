@@ -52,8 +52,13 @@
     
     play() {
       if (!this.synth || !this.bass) {
-        console.warn('⚠️ Day music not initialized');
-        return;
+        // Try to initialize if not already done
+        if (typeof Tone !== 'undefined') {
+          this.init();
+        } else {
+          console.warn('⚠️ Day music not initialized - Tone.js not available');
+          return;
+        }
       }
       
       if (this.isPlaying) return;
