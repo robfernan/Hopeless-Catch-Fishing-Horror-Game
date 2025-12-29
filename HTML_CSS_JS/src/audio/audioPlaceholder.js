@@ -86,9 +86,12 @@
      * Load placeholder audio for all missing files
      */
     loadPlaceholders(audioManager) {
-      if (!audioManager || !audioManager.audioContext) return;
+      if (!audioManager) return;
       
-      const ctx = audioManager.audioContext;
+      // Initialize buffers object if it doesn't exist
+      if (!audioManager.buffers) {
+        audioManager.buffers = {};
+      }
       
       // Create placeholder buffers for all sound effects
       const effects = [
@@ -99,33 +102,23 @@
       
       effects.forEach(name => {
         if (!audioManager.buffers[name]) {
-          audioManager.buffers[name] = this.createSilentBuffer(ctx, 0.5);
+          audioManager.buffers[name] = { name: name };
         }
       });
       
-      // Create placeholder buffers for music tracks with procedural themes
-      if (!audioManager.buffers['dayTheme']) {
-        audioManager.buffers['dayTheme'] = this.createDayThemeBuffer(ctx, 5.0);
-      }
-      if (!audioManager.buffers['nightTheme']) {
-        audioManager.buffers['nightTheme'] = this.createNightThemeBuffer(ctx, 5.0);
-      }
-      
-      const otherTracks = ['cabinTheme', 'menuTheme', 'stormTheme', 'tensionTheme'];
-      otherTracks.forEach(name => {
+      // Create placeholder buffers for music tracks
+      const musicTracks = ['dayTheme', 'nightTheme', 'cabinTheme', 'menuTheme', 'stormTheme', 'tensionTheme'];
+      musicTracks.forEach(name => {
         if (!audioManager.buffers[name]) {
-          audioManager.buffers[name] = this.createSilentBuffer(ctx, 5.0);
+          audioManager.buffers[name] = { name: name };
         }
       });
       
       // Create placeholder buffers for ambient sounds
-      const ambient = [
-        'waterLoop', 'windLoop', 'rainLoop'
-      ];
-      
+      const ambient = ['waterLoop', 'windLoop', 'rainLoop'];
       ambient.forEach(name => {
         if (!audioManager.buffers[name]) {
-          audioManager.buffers[name] = this.createSilentBuffer(ctx, 10.0);
+          audioManager.buffers[name] = { name: name };
         }
       });
       

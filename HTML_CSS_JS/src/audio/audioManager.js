@@ -9,6 +9,8 @@
     
     // Audio context
     audioContext: null,
+    buffers: {}, // For compatibility with audioPlaceholder
+    currentMusic: null,
     
     init() {
       if (this.isInitialized) return;
@@ -35,6 +37,47 @@
         console.log('🔊 AudioManager initialized');
       } catch (e) {
         console.warn('⚠️ Audio initialization failed:', e);
+      }
+    },
+    
+    // Compatibility methods for musicManager
+    loadAudio(name, url) {
+      // Placeholder - audio is procedurally generated
+      return Promise.resolve();
+    },
+    
+    playMusic(name, volume, loop) {
+      // Use our new music system
+      if (name === 'dayTheme' && window.DayMusic) {
+        window.DayMusic.setVolume(volume);
+        window.DayMusic.play();
+        this.currentMusic = window.DayMusic;
+      } else if (name === 'nightTheme' && window.NightMusic) {
+        window.NightMusic.setVolume(volume);
+        window.NightMusic.play();
+        this.currentMusic = window.NightMusic;
+      }
+    },
+    
+    stopMusic() {
+      if (this.currentMusic && typeof this.currentMusic.stop === 'function') {
+        this.currentMusic.stop();
+      }
+      this.currentMusic = null;
+    },
+    
+    fadeMusic(targetVolume, duration) {
+      // Simple fade - just set volume
+      if (this.currentMusic && typeof this.currentMusic.setVolume === 'function') {
+        this.currentMusic.setVolume(targetVolume);
+      }
+    },
+    
+    resumeContext() {
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        this.audioContext.resume().then(() => {
+          console.log('✅ Audio context resumed');
+        });
       }
     },
     
@@ -109,15 +152,12 @@
     
     // Resume audio context (required for user interaction)
     resume() {
-      if (this.audioContext && this.audioContext.state === 'suspended') {
-        this.audioContext.resume().then(() => {
-          console.log('✅ Audio context resumed');
-        });
-      }
+      this.resumeContext();
     },
     
     // Cleanup
     dispose() {
+      this.stopMusic();
       if (window.DayMusic && typeof window.DayMusic.dispose === 'function') {
         window.DayMusic.dispose();
       }
