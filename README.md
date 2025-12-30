@@ -1,200 +1,150 @@
-# Hopeless Catch - Fishing Horror Game
+# Hopeless Catch - Cozy Horror Fishing
 
-A cozy pixel art fishing game with a subtle secret. Unwind by the lake, catch 9 unique fish species, and discover what lurks in the tranquil waters after dark.
+A unique blend of relaxing fishing and subtle horror. Unwind by the lake during the day, but beware what lurks in the waters after dark.
 
-## 🎮 Play the Game
+## Quick Start
 
-### HTML/CSS/JS Version (Web Browser)
-- **Location**: `HTML_CSS_JS/`
-- **How to Play**: Open `HTML_CSS_JS/index.html` in any modern web browser
-- **Status**: Core gameplay complete, additional features in development
+1. Open `HTML_CSS_JS/index.html` in a web browser
+2. Click "Start Game" to begin
+3. Use WASD or Arrow Keys to move
+4. Press SPACE to cast and reel
+5. Press B to open tackle box
+6. Press ESC to pause
 
-### Love2D Version (Desktop)
-- **Location**: `Love2d Version/`
-- **How to Play**: Download and run `HopelessCatch.love` with Love2D
-- **Status**: Complete reference implementation
+## Game Concept
 
-## 🎣 Game Features
+**By Day:** A peaceful, cozy fishing experience. Relax, catch fish, upgrade your gear, and bond with your companion.
 
-### Day Experience
-- Beautiful sky transitions (sunrise, midday, sunset)
-- Animated water with ripples
-- Peaceful atmosphere
-- 5 day fish species
-- Strategic bait selection
+**By Night:** The waters reveal their secrets. Strange creatures emerge, mysterious events occur, and the atmosphere shifts to something more unsettling.
 
-### Night Experience
-- Darkened visuals with moonlight
-- Eerie atmosphere
-- 4 night creatures
-- Optional anomalies
-- Mysterious encounters
+## Controls
 
-### Core Gameplay
-- 7-phase fishing system
-- Dynamic day/night cycle
-- Weather effects (rain, wind)
-- Fish encyclopedia and catch tracking
-- Cabin rest mechanic
-- Multiple bait types
+- **WASD / Arrow Keys** - Move around the lake
+- **SPACE** - Cast line / Reel fish (hold for power)
+- **B** - Open tackle box (select bait)
+- **J** - Open journal (view catches and lore)
+- **ESC** - Pause / Resume
+- **C** - Visit cabin (rest and advance time)
 
-## 🎮 Controls
+## Fishing Mechanics
 
-| Key | Action |
-|-----|--------|
-| WASD / Arrows | Move |
-| SPACE | Cast/Reel/Hook |
-| B | Open Tackle Box |
-| TAB | Open Journal |
-| H | Rest in Cabin |
-| ESC | Pause/Menu |
+### Casting System
+- Press SPACE to enter casting mode
+- Watch the power meter (0-100%)
+- **Perfect cast (50%)** = bonus accuracy and distance
+- Release at the right moment for better results
+- Weather affects casting accuracy
 
-## 🐟 Fish Species
+### Reeling System
+- When you get a bite, press SPACE to hook the fish
+- Hold SPACE to reel in the fish
+- Watch the tension meter - too much tension breaks the line
+- Different fish have different difficulty levels
+- Reel steadily to land the catch
 
-### Day Fish (5 species)
-- **Sunfish** - Common, easy to catch
-- **Bass** - Common, good for beginners
-- **Trout** - Uncommon, prefers moving water
-- **Catfish** - Uncommon, bottom feeder
-- **Golden Carp** - Rare, valuable catch
+### Bait System
+- Press B to open tackle box
+- Select different bait types:
+  - **Worms** - Attracts common day fish
+  - **Minnows** - Better for larger fish
+  - **Cheese** - Attracts catfish
+  - **Corn** - Attracts rare species
+- Each bait attracts different fish
+- Better bait = more bites and rarer catches
 
-### Night Fish (4 species)
-- **Pale Crawler** - Uncommon, mysterious
-- **Bleeding Carp** - Uncommon, unsettling
-- **Whispering Eel** - Rare, eerie sounds
-- **Fishman** - Very rare, legendary encounter
+## Fish Species
 
-## 📁 Repository Structure
+### Day Fish (Peaceful)
+- **Sunfish** - Easy, common
+- **Bass** - Medium difficulty
+- **Trout** - Medium-hard
+- **Catfish** - Hard
+- **Golden Carp** - Very rare, beautiful
+
+### Night Creatures (Mysterious)
+- **Pale Crawler** - Eerie, glowing
+- **Bleeding Carp** - Unsettling appearance
+- **Whispering Eel** - Strange sounds
+- **Fishman** - Legendary, terrifying
+
+## Game Features
+
+### Cozy Elements
+- **Peaceful Day Fishing** - Relaxing atmosphere, beautiful pixel art
+- **Companion System** - Your loyal friend reacts to events
+- **Cabin Retreat** - Rest, save progress, advance time
+- **Journal & Stats** - Track catches and discoveries
+- **Progression** - Upgrade your gear and unlock new areas
+
+### Horror Elements
+- **Dynamic Day/Night** - Atmosphere shifts after dark
+- **Weather Effects** - Rain and wind affect fishing
+- **Mysterious Lore** - Discover secrets through journal entries
+- **Strange Events** - Anomalies and unusual occurrences
+- **Legendary Catches** - Rare, unsettling creatures
+- **Environmental Storytelling** - Clues about the lake's secrets
+
+## Game Tips
+
+1. **Fish During the Day** - Easier catches, more relaxing
+2. **Explore at Night** - Discover rare creatures and lore
+3. **Perfect Your Cast** - Aim for 50% power for bonus accuracy
+4. **Manage Tension** - Don't reel too fast or the line breaks
+5. **Try Different Baits** - Each attracts different species
+6. **Visit the Cabin** - Rest and advance time safely
+7. **Read the Journal** - Piece together the lake's mysteries
+
+## Progression System
+
+### Gear Upgrades
+- Better rods = improved casting accuracy
+- Stronger reels = better tension management
+- Premium tackle = attracts rarer fish
+
+### Locations
+- **Starting Lake** - Your peaceful fishing spot
+- **Deep Forest Pond** - Unlocked after catching 5 species
+- **Mountain Stream** - Unlocked after discovering lore
+- **Mysterious Depths** - Unlocked after catching legendary fish
+
+### Companion Bonding
+- Your companion grows closer as you fish
+- Unlocks special dialogue and reactions
+- Warns you about dangerous situations
+- Celebrates your legendary catches
+
+## Project Structure
 
 ```
-Hopeless-Catch-Fishing-Horror-Game/
-├── README.md                     # This file
-├── HTML_CSS_JS/                  # Web version (HTML5/Canvas)
-│   ├── README.md                 # Web version documentation
-│   ├── index.html                # Main game file
-│   ├── src/                      # JavaScript source code
-│   ├── assets/                   # Game assets (images)
-│   └── styles/                   # CSS styles
-├── Love2d Version/               # Desktop version (Love2D/Lua)
-│   ├── HopelessCatch.love        # Playable game file
-│   └── HopelessCatch_Source/     # Lua source code
-└── docs/                         # Documentation
-    ├── ANALYSIS_SUMMARY.md       # Development analysis
-    ├── IMPLEMENTATION_ROADMAP.md # Development roadmap
-    └── LOVE2D_VS_HTML_COMPARISON.md # Version comparison
+HTML_CSS_JS/
+├── index.html          # Main game file
+├── styles/
+│   └── global.css      # All styling
+└── src/
+    ├── main.js         # Game initialization
+    ├── gamestate.js    # Game state & progression
+    ├── fishing/        # Fishing systems
+    ├── world/          # World rendering
+    ├── cabin.js        # Cabin interior
+    ├── journal.js      # Journal & lore
+    └── [other systems]
 ```
 
-## 🚀 Quick Start
+## Browser Support
 
-### Play Online (Easiest)
-Visit the game on itch.io: [Hopeless Catch on itch.io](https://robfernan.itch.io/hopeless-catch)
+- Chrome/Chromium
+- Firefox
+- Safari
+- Edge
 
-### Web Version (Local)
-1. Clone this repository
-2. Navigate to `HTML_CSS_JS/`
-3. Open `index.html` directly in your web browser (no server needed!)
-4. Press SPACE to start fishing!
+## Design Philosophy
 
-### Love2D Version (Desktop)
-1. Install [Love2D](https://love2d.org/)
-2. Download from itch.io or `Love2d Version/HopelessCatch.love`
-3. Run with Love2D or drag onto Love2D executable
-4. Enjoy the complete experience!
+**Hopeless Catch** is designed to be a sanctuary - a place where you can relax and unwind. But as you explore deeper, you'll discover that this peaceful lake holds secrets. The horror isn't about jump scares or stress - it's about atmosphere, mystery, and the unknown.
 
-## 🛠️ Development
-
-### Web Version Status
-- ✅ **Core Fishing**: 7-phase fishing system complete
-- ✅ **Game Systems**: Day/night cycle, weather, save system
-- ✅ **Fish & Bait**: All 9 fish species and 4 bait types
-- ✅ **Journal**: Catch tracking and statistics
-- ⚠️ **UI Systems**: Basic implementation (menus in progress)
-- ⚠️ **World Rendering**: Functional but simplified
-- ❌ **Audio System**: Not yet implemented
-- ❌ **Horror Elements**: Minimal implementation
-
-### Love2D Version Status
-- ✅ **Complete**: Full feature implementation
-- ✅ **Reference**: Source code for web port development
-
-See `docs/ANALYSIS_SUMMARY.md` for detailed development status.
-
-## 📖 Documentation
-
-- **[Web Version Guide](HTML_CSS_JS/README.md)** - Detailed web version documentation
-- **[Developer Guide](HTML_CSS_JS/DEVELOPER_GUIDE.md)** - Technical implementation details
-- **[Analysis Summary](docs/ANALYSIS_SUMMARY.md)** - Development progress analysis
-- **[Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md)** - Future development plans
-
-## 🎨 Technical Details
-
-### Web Version
-- **Engine**: HTML5 Canvas + Web Audio API
-- **Resolution**: 800x600 pixels (pixel art style)
-- **FPS**: 60 (locked)
-- **Storage**: Browser localStorage
-- **Audio**: Procedurally generated (planned)
-
-### Love2D Version
-- **Engine**: Love2D (Lua)
-- **Resolution**: 800x600 pixels
-- **FPS**: 60 (locked)
-- **Storage**: Love2D filesystem
-- **Audio**: Love2D audio system
-
-## 🎯 Game Modes
-
-### Normal Mode
-- Full day/night cycle
-- All fish species available
-- Atmospheric effects
-- Mystery elements
-
-### Peaceful Mode
-- Disable night creatures
-- No anomalies or horror elements
-- Stress-free fishing experience
-- Perfect for relaxation
-
-## 🏆 Features Comparison
-
-| Feature | Web Version | Love2D Version |
-|---------|-------------|----------------|
-| Fishing Mechanics | ✅ Complete | ✅ Complete |
-| Fish Species (9) | ✅ Complete | ✅ Complete |
-| Day/Night Cycle | ✅ Complete | ✅ Complete |
-| Weather System | ✅ Complete | ✅ Complete |
-| Journal System | ✅ Complete | ✅ Complete |
-| Save System | ✅ Complete | ✅ Complete |
-| Menu System | ⚠️ Basic | ✅ Complete |
-| Audio System | ❌ Planned | ✅ Complete |
-| World Rendering | ⚠️ Basic | ✅ Complete |
-| Horror Elements | ⚠️ Minimal | ✅ Complete |
-
-## 🤝 Contributing
-
-This is a personal project, but feedback and suggestions are welcome! Feel free to:
-- Report bugs or issues
-- Suggest improvements
-- Share your fishing experiences
-- Contribute to documentation
-
-## 📄 License
-
-Free to play and modify for personal use.
-
-## 🎣 Credits
-
-- **Game Design & Programming**: MungDaal321 / robfernan
-- **Pixel Art**: Created with Aseprite
-- **Music**: Procedurally generated
-- **Built with**: HTML5 Canvas, Web Audio API, Love2D
+The game respects your time and emotions. You can always retreat to the cabin, take a break, and return when you're ready. The horror elements enhance the experience rather than detract from it.
 
 ---
 
-**Current Version**: 1.1.0  
-**Status**: Playable (Web), Complete (Love2D)  
-
-Enjoy your peaceful fishing adventure! 🎣
-
-*"Sometimes the most peaceful waters hide the deepest secrets..."*
+**Status**: In Development
+**Version**: 1.1.0
+**Genre**: Cozy Horror Fishing Adventure

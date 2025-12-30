@@ -137,6 +137,30 @@
       </div>
     </div>
 
+    <!-- Pause panel -->
+    <div id="pause-panel" class="overlay hidden" aria-hidden="true">
+      <div class="menu-box" style="width: 500px;">
+        <h2 style="color:#d66;">PAUSED</h2>
+        <p class="subtitle">Game paused</p>
+        
+        <!-- Location Switcher -->
+        <div style="margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 5px;">
+          <p style="margin: 0 0 10px 0; font-size: 12px; color: #aaa;">SWITCH LOCATION</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <button id="location-lake" class="primary" style="font-size: 11px; padding: 8px;">🌊 Lake</button>
+            <button id="location-forest" class="primary" style="font-size: 11px; padding: 8px;">🌲 Forest</button>
+            <button id="location-mountain" class="primary" style="font-size: 11px; padding: 8px;">⛰️ Mountain</button>
+          </div>
+        </div>
+        
+        <!-- Control Buttons -->
+        <div style="margin: 20px 0;">
+          <button id="pause-continue" class="primary">Continue</button>
+          <button id="pause-menu" class="primary" style="margin-top: 10px;">Main Menu</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Inline minimal assets, world, player and main loop so file:// works without a server -->
     </script>
 
@@ -368,16 +392,7 @@
     }
   </script>
 
-  <!-- Tone.js for procedural music generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-
   <script src="src/assets.js"></script>
-  <script src="src/audio/audioManager.js"></script>
-  <script src="src/audio/audioPlaceholder.js"></script>
-  <script src="src/audio/soundEffects.js"></script>
-  <script src="src/audio/dayMusic.js"></script>
-  <script src="src/audio/nightMusic.js"></script>
-  <script src="src/audio/musicManager.js"></script>
   <script src="src/world/worldRenderer.js"></script>
   <script src="src/daynightcycle.js"></script>
   <script src="src/weather.js"></script>
@@ -396,9 +411,40 @@
   <script src="src/fishing/fishingController.js"></script>
   <script src="src/fishing/fishing.js"></script>
   <script src="src/gamestate.js"></script>
+  <script src="src/scenemanager.js"></script>
+  <script src="src/scenes/baseScene.js"></script>
+  <script src="src/scenes/menuScene.js"></script>
+  <script src="src/scenes/gameScene.js"></script>
+  <script src="src/scenes/lakeScene.js"></script>
+  <script src="src/scenes/forestScene.js"></script>
+  <script src="src/scenes/mountainScene.js"></script>
   <script src="src/main.js"></script>
 
   <script>
+  // Global pause state and toggle function
+  let isPaused = false;
+  function togglePause() {
+    if (window.tackleboxOpen) return;
+    isPaused = !isPaused;
+    const pausePanel = document.getElementById('pause-panel');
+    const canvas = document.getElementById('game-canvas');
+    if (isPaused) {
+      pausePanel.classList.remove('hidden');
+      pausePanel.classList.add('visible');
+      pausePanel.setAttribute('aria-hidden','false');
+      window.menuActive = true;
+      try { document.getElementById('pause-continue').focus(); } catch(e) {}
+    } else {
+      pausePanel.classList.remove('visible');
+      pausePanel.classList.add('hidden');
+      pausePanel.setAttribute('aria-hidden','true');
+      window.menuActive = false;
+      try { canvas.focus(); } catch(e) {}
+    }
+  }
+  window.togglePause = togglePause;
+  window.isPaused = isPaused;
+
   // main loop
     (function(){
       const canvas=document.getElementById('game-canvas');
@@ -406,154 +452,63 @@
       let last=performance.now();
       const fpsEl=document.getElementById('fps');
       const keys={};
-      window.addEventListener('keydown',e=>{keys[e.key]=true});
+      
+      window.addEventListener('keydown',e=>{
+        // Don't let canvas steal focus from menu buttons
+        if(window.menuActive && (e.key === 'Enter' || e.key === ' ')) return;
+        keys[e.key]=true;
+      });
       window.addEventListener('keyup',e=>{keys[e.key]=false});
 
       async function init(){
-        // Delegate to centralized Main initializer when available
-        if(window.Main && typeof window.Main.init === 'function'){
-          await window.Main.init()
-        } else {
-          // fallback: do minimal local initialization
-          try{ await window.Assets.loadAll() }catch(e){}
-          if(window.World && typeof window.World.init === 'function') window.World.init(canvas.width,canvas.height)
-          if(window.Player && typeof window.Player.init === 'function') window.Player.init(canvas.width/2, window.World.getGrassY()-16)
-          if(window.FishingController && window.FishingController.init) window.FishingController.init()
-          if(window.CastingSystem && window.CastingSystem.init) window.CastingSystem.init()
+        // Initialize scene manager and scenes
+        try {
+          await window.Assets.loadAll();
+          
+          if (window.SceneManager) {
+            window.SceneManager.init();
+            
+            // Register all scenes
+            if (window.MenuScene) window.SceneManager.registerScene('menu', window.MenuScene);
+            if (window.LakeScene) window.SceneManager.registerScene('lake', window.LakeScene);
+            if (window.ForestScene) window.SceneManager.registerScene('forest', window.ForestScene);
+            if (window.MountainScene) window.SceneManager.registerScene('mountain', window.MountainScene);
+            
+            // Start with menu scene
+            await window.SceneManager.switchScene('menu');
+          }
+        } catch (e) {
+          console.error('Initialization error:', e);
         }
         
-        // Resume audio context on first interaction (browser autoplay policy)
-        const resumeAudio = () => {
-          if(window.AudioManager && window.AudioManager.resumeContext) window.AudioManager.resumeContext()
-          document.removeEventListener('click', resumeAudio)
-          document.removeEventListener('keydown', resumeAudio)
-        }
-        document.addEventListener('click', resumeAudio)
-        document.addEventListener('keydown', resumeAudio)
-        
-        // Start menu music
-        if(window.MusicManager && window.MusicManager.playMenuMusic) window.MusicManager.playMenuMusic()
-        
-        requestAnimationFrame(loop)
+        requestAnimationFrame(loop);
       }
 
       function loop(now){
         const dt=Math.min(0.05,(now-last)/1000);
         last=now;
-        update(dt);
+        
+        // Store current keys for scene access
+        window.currentKeys = keys;
+        
+        if (!window.isPaused) {
+          update(dt);
+        }
         draw();
         if(fpsEl) fpsEl.textContent='FPS: '+Math.round(1/dt);
-        requestAnimationFrame(loop)
+        requestAnimationFrame(loop);
       }
 
       function update(dt){
-        window.Player.update(dt,keys);
-        window.World.update(dt);
-        
-        // Update day/night and weather
-        if(window.DayNightCycle && window.DayNightCycle.update) window.DayNightCycle.update(dt)
-        if(window.Weather && window.Weather.update) window.Weather.update(dt)
-        
-        // Update music based on time and weather
-        if(window.MusicManager && window.MusicManager.update){
-          const timeOfDay = (window.DayNightCycle && window.DayNightCycle.getTime) ? window.DayNightCycle.getTime() : 0.5
-          const weatherState = (window.Weather && window.Weather.getWeatherState) ? window.Weather.getWeatherState() : 'clear'
-          window.MusicManager.update(timeOfDay, weatherState)
-        }
-        
-        // Update UI
-        if(window.UIManager && window.UIManager.update) window.UIManager.update(dt)
-        
-        // Update cabin
-        if(window.Cabin && window.Cabin.update) window.Cabin.update(dt)
-        
-        // Update anomalies
-        if(window.Anomalies && window.Anomalies.update) window.Anomalies.update(dt)
-        
-        // Update screen shake
-        if(window.ScreenShake && window.ScreenShake.update) window.ScreenShake.update(dt)
-        
-        // Update sky renderer
-        if(window.SkyRenderer && window.SkyRenderer.update) window.SkyRenderer.update(dt)
-        
-        // Update fishing systems
-        if(window.CastingSystem && window.CastingSystem.update) window.CastingSystem.update(dt, null, window.FishingController ? window.FishingController.getState() : 'idle')
-        if(window.FishingController) window.FishingController.update(dt)
-        
-        // Check for anomalies near player
-        if(window.Anomalies && window.Anomalies.checkForAnomalies && window.Player){
-          window.Anomalies.checkForAnomalies(window.Player.x, window.Player.y)
+        if (window.SceneManager) {
+          window.SceneManager.update(dt);
         }
       }
 
       function draw(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        
-        // Apply screen shake
-        const shake = (window.ScreenShake && window.ScreenShake.getOffset) ? window.ScreenShake.getOffset() : {x:0, y:0}
-        ctx.save()
-        ctx.translate(shake.x, shake.y)
-        
-        // Get time of day for rendering
-        const timeOfDay = (window.DayNightCycle && window.DayNightCycle.getTime) ? window.DayNightCycle.getTime() : 0.5
-        
-        // Draw world terrain - use WorldRenderer if available, otherwise fallback
-        try {
-          if(window.WorldRenderer && window.WorldRenderer.draw) {
-            window.WorldRenderer.draw(ctx, timeOfDay)
-          }
-        } catch(e) {
-          console.error('World rendering error:', e)
+        if (window.SceneManager) {
+          window.SceneManager.draw(ctx);
         }
-        
-        // Draw celestial bodies (sun, moon, stars) - BEFORE player so they appear behind
-        try {
-          const waterY = (window.World && window.World.getWaterY) ? window.World.getWaterY() : 480
-          if(window.SkyRenderer && window.SkyRenderer.draw) window.SkyRenderer.draw(ctx, timeOfDay, waterY)
-        } catch(e) {}
-        
-        // Draw game objects
-        try {
-          if(window.Player && window.Player.draw) window.Player.draw(ctx)
-        } catch(e) {}
-        
-        try {
-          if(window.World && window.World.drawForeground) window.World.drawForeground(ctx)
-        } catch(e) {}
-        
-        // Draw fishing rod, line, and bobber (AFTER world so bobber appears on top of water)
-        try{
-          const FC = window.FishingController
-          const CS = window.CastingSystem
-          const rodX = (window.Player && window.Player.x) ? window.Player.x + 8 : canvas.width/2
-          const rodY = (window.Player && window.Player.y) ? window.Player.y - 8 : canvas.height/2
-          const fstate = FC ? FC.getState() : 'idle'
-          const isBite = FC ? FC.isBiting() : false
-          if(CS && CS.draw) CS.draw(ctx, rodX, rodY, fstate, isBite)
-        }catch(e){ console.error('Fishing draw error:', e) }
-        
-        // Draw weather effects
-        try {
-          if(window.Weather && window.Weather.draw) window.Weather.draw()
-        } catch(e) {}
-        
-        // Draw anomalies
-        try {
-          if(window.Anomalies && window.Anomalies.draw) window.Anomalies.draw(ctx)
-        } catch(e) {}
-        
-        // Draw cabin overlay
-        try {
-          if(window.Cabin && window.Cabin.draw) window.Cabin.draw()
-        } catch(e) {}
-        
-        // End screen shake
-        ctx.restore()
-        
-        // Draw UI (after screen shake)
-        try {
-          if(window.UIManager && window.UIManager.draw) window.UIManager.draw(ctx)
-        } catch(e) {}
       }
 
       init().catch(e=>console.error(e))
@@ -588,7 +543,7 @@
   window.menuActive = false
   const _oldShowMenu = showMenu
   const _oldHideMenu = hideMenu
-  showMenu = function(){ window.menuActive = true; _oldShowMenu(); if(window.MusicManager && window.MusicManager.playMenuMusic) window.MusicManager.playMenuMusic() }
+  showMenu = function(){ window.menuActive = true; _oldShowMenu() }
   hideMenu = function(){ window.menuActive = false; _oldHideMenu() }
   function showHowTo(){ howtoPanel.classList.remove('hidden'); howtoPanel.classList.add('visible'); howtoPanel.setAttribute('aria-hidden','false'); howtoBack.focus() }
   function hideHowTo(){ howtoPanel.classList.remove('visible'); howtoPanel.classList.add('hidden'); howtoPanel.setAttribute('aria-hidden','true') }
@@ -597,7 +552,16 @@
   function showSettings(){ settingsPanel.classList.remove('hidden'); settingsPanel.classList.add('visible'); settingsPanel.setAttribute('aria-hidden','false'); settingsBack.focus() }
   function hideSettings(){ settingsPanel.classList.remove('visible'); settingsPanel.classList.add('hidden'); settingsPanel.setAttribute('aria-hidden','true') }
 
-  startBtn.addEventListener('click', ()=>{ try{ console.log('menu: startBtn clicked') }catch(e){} if(window.Main && typeof window.Main.resetGame === 'function') window.Main.resetGame(); hideMenu(); /* gameplay already running in background loop */ })
+  startBtn.addEventListener('click', async ()=>{ 
+    try{ console.log('menu: startBtn clicked') }catch(e){} 
+    if(window.Main && typeof window.Main.resetGame === 'function') window.Main.resetGame(); 
+    hideMenu();
+    // Switch to mountain scene
+    if (window.SceneManager) {
+      await window.SceneManager.switchScene('mountain').catch(e => console.error('Scene switch error:', e));
+      window.menuActive = false; // Ensure menu flag is reset after scene switch
+    }
+  })
   howtoBtn.addEventListener('click', ()=>{ hideMenu(); showHowTo(); })
   howtoBack.addEventListener('click', ()=>{ hideHowTo(); showMenu(); })
   creditsBtn.addEventListener('click', ()=>{ hideMenu(); showCredits(); })
@@ -625,18 +589,6 @@
       updateSelection()
 
       window.addEventListener('keydown', (e)=>{
-        // Universal ESC handling: close panels or open menu when in-game
-        if(e.key === 'Escape'){
-          if(typeof journalPanel !== 'undefined' && journalPanel.classList.contains('visible')){ if(window.Journal) window.Journal.close(); showMenu(); updateSelection(); return }
-          if(typeof tackleboxPanel !== 'undefined' && tackleboxPanel.classList.contains('visible')){ hideTacklebox(); showMenu(); updateSelection(); return }
-          if(howtoPanel.classList.contains('visible')){ hideHowTo(); showMenu(); updateSelection(); return }
-          if(creditsPanel.classList.contains('visible')){ hideCredits(); showMenu(); updateSelection(); return }
-          if(settingsPanel.classList.contains('visible')){ hideSettings(); showMenu(); updateSelection(); return }
-          if(menu.classList.contains('visible')){ /* already showing menu */ return }
-          // If nothing visible, open menu (pause)
-          showMenu(); updateSelection(); return
-        }
-
         // If the main menu is visible, handle arrow/WASD navigation and Enter/Space to activate
         if(menu.classList.contains('visible')){
           if(e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W'){
@@ -781,6 +733,94 @@
             window.Journal.toggle()
           }
           e.preventDefault()
+        }
+      })
+
+      // Pause: Press ESC to pause/unpause or close panels
+      window.addEventListener('keydown', (e)=>{
+        if(e.key === 'Escape'){
+          // Close panels first
+          if(typeof journalPanel !== 'undefined' && journalPanel.classList.contains('visible')){ if(window.Journal) window.Journal.toggle(); e.preventDefault(); return }
+          if(typeof tackleboxPanel !== 'undefined' && tackleboxPanel.classList.contains('visible')){ hideTacklebox(); e.preventDefault(); return }
+          if(howtoPanel.classList.contains('visible')){ hideHowTo(); showMenu(); e.preventDefault(); return }
+          if(creditsPanel.classList.contains('visible')){ hideCredits(); showMenu(); e.preventDefault(); return }
+          if(settingsPanel.classList.contains('visible')){ hideSettings(); showMenu(); e.preventDefault(); return }
+          
+          // Handle pause menu
+          const pausePanel = document.getElementById('pause-panel')
+          if(pausePanel && pausePanel.classList.contains('visible')){
+            // If pause menu is open, close it (continue)
+            document.getElementById('pause-continue').click()
+            e.preventDefault()
+          } else if(menu && !menu.classList.contains('visible') && !window.tackleboxOpen){
+            // If in game (menu not visible), pause
+            togglePause()
+            e.preventDefault()
+          }
+        }
+      })
+
+      // Pause button handlers
+      const pausePanel = document.getElementById('pause-panel')
+      const pauseContinueBtn = document.getElementById('pause-continue')
+      const pauseMenuBtn = document.getElementById('pause-menu')
+      const locationLakeBtn = document.getElementById('location-lake')
+      const locationForestBtn = document.getElementById('location-forest')
+      const locationMountainBtn = document.getElementById('location-mountain')
+      
+      pauseContinueBtn.addEventListener('click', ()=>{
+        togglePause()
+      })
+      
+      pauseMenuBtn.addEventListener('click', ()=>{
+        window.isPaused = false
+        pausePanel.classList.remove('visible')
+        pausePanel.classList.add('hidden')
+        pausePanel.setAttribute('aria-hidden','true')
+        // Switch back to menu scene
+        if (window.SceneManager) {
+          window.SceneManager.switchScene('menu').catch(e => console.error('Scene switch error:', e));
+        }
+        showMenu()
+      })
+      
+      // Location switching from pause menu
+      locationLakeBtn.addEventListener('click', ()=>{
+        if (window.SceneManager) {
+          window.SceneManager.switchScene('lake').catch(e => console.error('Scene switch error:', e));
+          // Resume game
+          window.isPaused = false;
+          pausePanel.classList.remove('visible');
+          pausePanel.classList.add('hidden');
+          pausePanel.setAttribute('aria-hidden','true');
+          window.menuActive = false;
+          try { document.getElementById('game-canvas').focus(); } catch(e) {}
+        }
+      })
+      
+      locationForestBtn.addEventListener('click', ()=>{
+        if (window.SceneManager) {
+          window.SceneManager.switchScene('forest').catch(e => console.error('Scene switch error:', e));
+          // Resume game
+          window.isPaused = false;
+          pausePanel.classList.remove('visible');
+          pausePanel.classList.add('hidden');
+          pausePanel.setAttribute('aria-hidden','true');
+          window.menuActive = false;
+          try { document.getElementById('game-canvas').focus(); } catch(e) {}
+        }
+      })
+      
+      locationMountainBtn.addEventListener('click', ()=>{
+        if (window.SceneManager) {
+          window.SceneManager.switchScene('mountain').catch(e => console.error('Scene switch error:', e));
+          // Resume game
+          window.isPaused = false;
+          pausePanel.classList.remove('visible');
+          pausePanel.classList.add('hidden');
+          pausePanel.setAttribute('aria-hidden','true');
+          window.menuActive = false;
+          try { document.getElementById('game-canvas').focus(); } catch(e) {}
         }
       })
 

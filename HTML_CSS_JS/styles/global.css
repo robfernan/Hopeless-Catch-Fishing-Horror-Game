@@ -1,6 +1,6 @@
 html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial}
-#app{display:flex;align-items:center;justify-content:center;height:100vh;background:#111;padding:10px;box-sizing:border-box}
-#game-canvas{image-rendering:pixelated;border:6px solid #222;background:#000;box-shadow:0 0 30px rgba(0,0,0,0.8);max-width:100%;max-height:100vh;width:auto;height:auto}
+#app{display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);padding:10px;box-sizing:border-box}
+#game-canvas{image-rendering:pixelated;border:6px solid #0f3460;background:#000;box-shadow:0 0 40px rgba(0,0,0,0.9), inset 0 0 60px rgba(0,0,0,0.5);max-width:100%;max-height:100vh;width:auto;height:auto}
 #ui{position:fixed;left:8px;top:8px;color:#fff;z-index:10}
 
 /* Responsive design */
@@ -30,18 +30,18 @@ html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 /* Menu overlay */
-.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.95);z-index:50;animation:fadeIn 0.3s ease-out}
-.overlay .menu-box{width:520px;color:#ddd;text-align:center;animation:slideIn 0.4s ease-out}
-.overlay h1{color:#d66;margin:0 0 12px;font-size:32px;animation:glow 2s ease-in-out infinite}
-.subtitle{color:#999;margin-bottom:24px;font-size:14px}
-.menu-box .primary{display:block;margin:0 auto 18px;padding:12px 18px;background:#7a3f2e;color:#fff;border:none;border-radius:6px;cursor:pointer;transition:all 0.2s ease;font-weight:500}
-.menu-box .primary:hover{background:#9a5f4e;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.3)}
-.menu-box .primary:active{transform:translateY(0)}
-.menu-list{list-style:none;padding:0;margin:0;color:#ddd}
-.menu-list li{padding:10px 0;cursor:pointer;transition:all 0.2s ease;border-radius:4px}
-.menu-list li:hover{background:rgba(255,255,255,0.08);color:#fff;padding-left:8px}
-.overlay.visible{display:flex}
-.overlay.hidden{display:none}
+.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.95);z-index:50;animation:fadeIn 0.3s ease-out}
+.overlay .menu-box{width:520px;color:#ddd;text-align:center;animation:slideIn 0.4s ease-out;background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);border:2px solid #0f3460;border-radius:12px;padding:40px 30px;box-shadow:0 0 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(15,52,96,0.3)}
+.overlay h1{color:#e94560;margin:0 0 12px;font-size:36px;animation:glow 2s ease-in-out infinite;text-shadow:2px 2px 8px rgba(0,0,0,0.8);letter-spacing:2px}
+.subtitle{color:#a8dadc;margin-bottom:30px;font-size:15px;font-weight:500}
+.menu-box .primary{display:block;margin:0 auto 18px;padding:14px 28px;background:linear-gradient(135deg, #e94560 0%, #c73a4a 100%);color:#fff;border:none;border-radius:6px;cursor:pointer;transition:all 0.3s ease;font-weight:600;font-size:16px;box-shadow:0 4px 15px rgba(233,69,96,0.4);text-transform:uppercase;letter-spacing:1px}
+.menu-box .primary:hover{background:linear-gradient(135deg, #f05a7a 0%, #d94a5a 100%);transform:translateY(-3px);box-shadow:0 6px 20px rgba(233,69,96,0.6)}
+.menu-box .primary:active{transform:translateY(-1px);box-shadow:0 2px 10px rgba(233,69,96,0.4)}
+.menu-list{list-style:none;padding:0;margin:20px 0 0 0;color:#ddd;display:flex;flex-direction:column;gap:8px}
+.menu-list li{padding:12px 16px;cursor:pointer;transition:all 0.3s ease;border-radius:6px;border-left:3px solid transparent;font-size:15px;font-weight:500;color:#a8dadc}
+.menu-list li:hover{background:rgba(233,69,96,0.15);color:#e94560;border-left-color:#e94560;padding-left:20px}
+.overlay.visible{display:flex !important}
+.overlay.hidden{display:none !important}
 
 /* Selected menu item */
 .menu-list li.selected, .menu-box .primary.selected{background:rgba(255,200,100,0.15);color:#ffc864;border-left:3px solid #ffc864;padding-left:5px}

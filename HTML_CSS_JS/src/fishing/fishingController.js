@@ -12,12 +12,52 @@
     currentCatch: null,
     totalCatches: 0,
     catchRecorded: false,
+    
+    // Enhanced fishing mechanics
+    difficulty: 0.5, // 0-1, affects bite frequency and reel difficulty
+    fishStrength: 0.5, // How hard the fish fights
+    lineStrength: 1.0, // Degrades as you reel
+    reelSpeed: 0, // Current reel speed (player input)
+    tension: 0, // Line tension (0-1)
+    
     rng(min,max){ return min + Math.random()*(max-min) },
-    init(){ this.state = 'idle'; this.currentBait = window.SelectedBait || 'worms'; window.SelectedBait = window.SelectedBait || 'worms'; this.biteTimer = 0; this.isBitingFlag = false; this.reelProgress = 0; this.totalCatches = 0; this.catchRecorded = false },
-    reset(){ this.state = 'idle'; this.currentBait = window.SelectedBait || 'worms'; window.SelectedBait = window.SelectedBait || 'worms'; this.biteTimer = 0; this.isBitingFlag = false; this.reelProgress = 0; this.currentCatch = null; this.totalCatches = 0; this.catchRecorded = false },
+    init(){ 
+      this.state = 'idle'; 
+      this.currentBait = window.SelectedBait || 'worms'; 
+      window.SelectedBait = window.SelectedBait || 'worms'; 
+      this.biteTimer = 0; 
+      this.isBitingFlag = false; 
+      this.reelProgress = 0; 
+      this.totalCatches = 0; 
+      this.catchRecorded = false;
+      this.lineStrength = 1.0;
+      this.tension = 0;
+    },
+    reset(){ 
+      this.state = 'idle'; 
+      this.currentBait = window.SelectedBait || 'worms'; 
+      window.SelectedBait = window.SelectedBait || 'worms'; 
+      this.biteTimer = 0; 
+      this.isBitingFlag = false; 
+      this.reelProgress = 0; 
+      this.currentCatch = null; 
+      this.totalCatches = 0; 
+      this.catchRecorded = false;
+      this.lineStrength = 1.0;
+      this.tension = 0;
+    },
     update(dt){
       // don't progress while menus open
       if(window.menuActive) return
+
+      // Update line tension (fish pulling)
+      if(this.state === 'reeling' || this.state === 'struggling'){
+        this.tension = Math.max(0, this.tension - dt * 0.5); // Tension decreases over time
+        if(this.currentCatch){
+          this.fishStrength = this.currentCatch.difficulty || 0.5;
+          this.tension = Math.min(1, this.tension + dt * this.fishStrength * 0.3);
+        }
+      }
 
       if(this.state === 'bobbing'){
         // Use BiteDetection if available for weather/bait influences
@@ -40,45 +80,36 @@
             this.state = 'biting'
             this.isBitingFlag = true
             this._setHUD('BITE! Press SPACE to hook!')
-            // Play bite sound
-            if(window.SoundEffects && window.SoundEffects.playFishingSound) window.SoundEffects.playFishingSound('bite')
           }
         }
       }else if(this.state === 'reeling'){
-        // advanced reeling handled by ReelingSystem when available
+        // Enhanced reeling with tension mechanics
         try{
           const RS = window.ReelingSystem
-          const playerIsReeling = false // manualReel handles actual input
+          const playerIsReeling = false
           const res = RS.updateReeling(dt, this.currentCatch, playerIsReeling)
           if(res === 'line_break'){
             this._setHUD('The line snapped! The fish escaped...')
-            // Play line break sound
-            if(window.SoundEffects && window.SoundEffects.playFishingSound) window.SoundEffects.playFishingSound('lineBreak')
             try{ if(window.StatisticsSystem && window.StatisticsSystem.recordLineBreak) window.StatisticsSystem.recordLineBreak() }catch(e){}
             try{ if(window.StatisticsSystem && window.StatisticsSystem.recordFishEscaped) window.StatisticsSystem.recordFishEscaped() }catch(e){}
             this._endFishing()
           } else if(res === 'catch_success'){
             this._setHUD('You caught the fish!')
-            // Play caught sound
-            if(window.SoundEffects && window.SoundEffects.playFishingSound) window.SoundEffects.playFishingSound('caught')
-            // Screen shake and particles on catch
             if(window.ScreenShake && window.ScreenShake.mediumShake) window.ScreenShake.mediumShake()
             if(window.CastingSystem && window.CastingSystem.createSplashEffect){
               const bobberPos = window.CastingSystem.getBobberPosition()
               window.CastingSystem.createSplashEffect(bobberPos[0], bobberPos[1])
             }
-            // Record catch only once (prevent double-counting on hold)
             if(!this.catchRecorded){
               this.catchRecorded = true
               try{ if(window.StatisticsSystem && window.StatisticsSystem.recordCatch) window.StatisticsSystem.recordCatch(this.currentCatch && (this.currentCatch.name || this.currentCatch.asset) || 'unknown', null) }catch(e){}
             }
-            // Show catch UI if available
             try{ if(typeof window.showCatchWindow === 'function'){ window.showCatchWindow(this.currentCatch) } }catch(e){}
             this._endFishing()
           } else {
-            // update HUD with progress
             const prog = Math.min(100, Math.round((RS.getReelProgress ? RS.getReelProgress() : this.reelProgress) ))
-            this._setHUD('Reeling... ' + prog + '%')
+            const tensionBar = '█'.repeat(Math.round(this.tension * 10)) + '░'.repeat(10 - Math.round(this.tension * 10))
+            this._setHUD(`Reeling... ${prog}% [${tensionBar}]`)
           }
         }catch(e){
           // fallback simple mechanic
@@ -86,13 +117,11 @@
           if(this.reelProgress <= 0){ this.reelProgress = 0 }
           if(this.reelProgress >= this.maxReel){ 
             this._setHUD('You caught the fish!')
-            // Screen shake and particles on catch
             if(window.ScreenShake && window.ScreenShake.mediumShake) window.ScreenShake.mediumShake()
             if(window.CastingSystem && window.CastingSystem.createSplashEffect){
               const bobberPos = window.CastingSystem.getBobberPosition()
               window.CastingSystem.createSplashEffect(bobberPos[0], bobberPos[1])
             }
-            // Record catch only once (prevent double-counting on hold)
             if(!this.catchRecorded){
               this.catchRecorded = true
               try{ if(window.StatisticsSystem && window.StatisticsSystem.recordCatch) window.StatisticsSystem.recordCatch(this.currentCatch && (this.currentCatch.name || this.currentCatch.asset) || 'unknown', null) }catch(e){}

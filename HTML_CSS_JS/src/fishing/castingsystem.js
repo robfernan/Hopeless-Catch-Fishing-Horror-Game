@@ -1,4 +1,4 @@
-// CastingSystem.js — ported from Lua castingsystem.lua (simplified)
+// CastingSystem.js — Enhanced fishing mechanics
 (function(){
   const CastingSystem = {
     castDistance: 0,
@@ -8,8 +8,31 @@
     bobberX: 0,
     bobberY: 0,
     particles: [],
-    init(){ this.castDistance = 0; this.castPower = 0; this.castingUp = true; this.bobberX = 0; this.bobberY = 0; this.particles = [] },
-    reset(){ this.castDistance = 0; this.castPower = 0; this.castingUp = true; this.bobberX = 0; this.bobberY = 0; this.particles = [] },
+    
+    // Enhanced mechanics
+    castAccuracy: 1.0, // Affected by weather
+    castVariation: 0, // Random variation in cast
+    
+    init(){ 
+      this.castDistance = 0; 
+      this.castPower = 0; 
+      this.castingUp = true; 
+      this.bobberX = 0; 
+      this.bobberY = 0; 
+      this.particles = [];
+      this.castAccuracy = 1.0;
+      this.castVariation = 0;
+    },
+    reset(){ 
+      this.castDistance = 0; 
+      this.castPower = 0; 
+      this.castingUp = true; 
+      this.bobberX = 0; 
+      this.bobberY = 0; 
+      this.particles = [];
+      this.castAccuracy = 1.0;
+      this.castVariation = 0;
+    },
     update(dt, weatherData, fishingState){
       // particles update
       for(let i=this.particles.length-1;i>=0;i--){
@@ -33,21 +56,34 @@
         if(this.castPower <= 0){ this.castPower = 0; this.castingUp = true }
       }
     },
-    startCasting(){ this.castPower = 0; this.castingUp = true; /* HUD message from controller */ },
+    startCasting(){ 
+      this.castPower = 0; 
+      this.castingUp = true;
+    },
     cast(rodX, rodY, currentBait){
       if(!currentBait) { return false }
+      
+      // Base cast distance
       this.castDistance = this.castPower * this.maxCastDistance
-      // weather effects stub: use window.Weather if present
+      
+      // Weather effects
       let castingAccuracy = 1
-      if(window.Weather && window.Weather.getWeatherData){ const wd = window.Weather.getWeatherData(); castingAccuracy = wd.castingAccuracy || 1 }
+      if(window.Weather && window.Weather.getWeatherData){ 
+        const wd = window.Weather.getWeatherData()
+        castingAccuracy = wd.castingAccuracy || 1
+      }
       this.castDistance = this.castDistance * castingAccuracy
+      
+      // Add variation based on cast power (perfect cast = less variation)
+      const powerAccuracy = Math.abs(this.castPower - 0.5) < 0.1 ? 1.2 : 1.0; // Bonus for perfect cast
+      this.castVariation = (Math.random() - 0.5) * 20 * (1 / powerAccuracy);
 
-      const angle = -Math.PI/4  // 45 degrees down and to the right
+      const angle = -Math.PI/4
       const windEffect = (window.Weather && window.Weather.getWindEffect) ? window.Weather.getWindEffect() : { strength:0, direction:0 }
       const windOffset = windEffect.strength * 30 * Math.cos(windEffect.direction || 0)
 
       // Cast the line out into the water
-      this.bobberX = rodX + Math.cos(angle) * this.castDistance * 0.6 + windOffset
+      this.bobberX = rodX + Math.cos(angle) * this.castDistance * 0.6 + windOffset + this.castVariation
       // Position bobber in the water using World's water Y coordinate
       const waterY = (window.World && window.World.getWaterY) ? window.World.getWaterY() : 480
       this.bobberY = waterY + Math.sin(angle) * this.castDistance * 0.4
