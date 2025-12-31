@@ -405,6 +405,8 @@
   <script src="src/fishing/castingsystem.js"></script>
   <script src="src/fishing/baitsystem.js"></script>
   <script src="src/fishing/fishdata.js"></script>
+  <script src="src/fishing/baitdata.js"></script>
+  <script src="src/fishing/roomdata.js"></script>
   <script src="src/fishing/statisticssystem.js"></script>
   <script src="src/fishing/reelingsystem.js"></script>
   <script src="src/fishing/bitedetection.js"></script>
@@ -457,6 +459,58 @@
         // Don't let canvas steal focus from menu buttons
         if(window.menuActive && (e.key === 'Enter' || e.key === ' ')) return;
         keys[e.key]=true;
+        
+        // Handle overlay and game controls
+        if (!window.menuActive) {
+          // ESC: Show pause menu
+          if (e.key === 'Escape') {
+            window.togglePause();
+            e.preventDefault();
+            return;
+          }
+          
+          // TAB: Open journal
+          if (e.key === 'Tab') {
+            if (window.UIManager) {
+              if (window.UIManager.getActiveOverlay() === 'journal') {
+                window.UIManager.closeOverlay();
+              } else {
+                window.UIManager.openOverlay('journal');
+              }
+            }
+            e.preventDefault();
+            return;
+          }
+          
+          // B: Open tackle box
+          if (e.key === 'b' || e.key === 'B') {
+            if (window.UIManager) {
+              if (window.UIManager.getActiveOverlay() === 'tacklebox') {
+                window.UIManager.closeOverlay();
+              } else {
+                window.UIManager.openOverlay('tacklebox');
+              }
+            }
+            e.preventDefault();
+            return;
+          }
+          
+          // H: Toggle time of day (rest in cabin)
+          if (e.key === 'h' || e.key === 'H') {
+            if (window.DayNightCycle && typeof window.DayNightCycle.advanceTime === 'function') {
+              window.DayNightCycle.advanceTime(0.5);
+            }
+            e.preventDefault();
+            return;
+          }
+          
+          // M: Open map (placeholder)
+          if (e.key === 'm' || e.key === 'M') {
+            // Map functionality can be added later
+            e.preventDefault();
+            return;
+          }
+        }
       });
       window.addEventListener('keyup',e=>{keys[e.key]=false});
 

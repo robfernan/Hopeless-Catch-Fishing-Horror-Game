@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'">
+    <title>Hopeless Catch</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            width: 800px;
+            height: 600px;
+            border: 2px solid #0f3460;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #aaa;
+            font-size: 16px;
+            text-align: center;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="loading">Loading Hopeless Catch...</div>
+    </div>
+    
+    <!-- Love.js library from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/love.js@0.11.4/love.js"></script>
+    
+    <script>
+        // Wait for love.js to load
+        function initGame() {
+            if (typeof window.LOVE === 'undefined') {
+                setTimeout(initGame, 100)
+                return
+            }
+            
+            const container = document.getElementById('game-container')
+            const canvas = document.createElement('canvas')
+            container.innerHTML = ''
+            container.appendChild(canvas)
+            
+            try {
+                // Create LÖVE game instance with the .love file
+                const game = new window.LOVE({
+                    canvas: canvas,
+                    gameFile: 'game.love',
+                    width: 800,
+                    height: 600,
+                    pixelated: true
+                })
+                
+                // Start the game
+                game.load()
+            } catch (err) {
+                console.error('Failed to initialize game:', err)
+                container.innerHTML = '<div id="loading">Error: ' + err.message + '</div>'
+            }
+        }
+        
+        // Start initialization when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGame)
+        } else {
+            initGame()
+        }
+    </script>
+</body>
+</html>

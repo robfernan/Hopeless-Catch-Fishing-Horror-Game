@@ -46,6 +46,43 @@
       this.lineStrength = 1.0;
       this.tension = 0;
     },
+    
+    // Select a fish based on current room and time of day
+    selectFishForCurrentLocation() {
+      if (!window.FishData || !window.RoomData) return null;
+      
+      const currentRoom = window.GameState ? window.GameState.currentRoom : 'lake_shallow_dock';
+      const timeOfDay = window.DayNightCycle ? (window.DayNightCycle.isNight ? 'night' : 'day') : 'day';
+      const peacefulMode = window.GameSettings ? window.GameSettings.peacefulMode : false;
+      
+      // Get available fish for this room
+      const availableFish = window.RoomData.getRoomFish(currentRoom, timeOfDay, peacefulMode);
+      
+      if (availableFish.length === 0) {
+        // Fallback to day fish if no room-specific fish
+        return window.FishData.getDayFish()[0];
+      }
+      
+      // Select a random fish from available options, weighted by bait multiplier
+      const currentBait = this.currentBait || 'worms';
+      let totalWeight = 0;
+      const weights = availableFish.map(f => {
+        const multiplier = f.baitMultiplier[currentBait] || 1.0;
+        totalWeight += multiplier;
+        return { fish: f, weight: multiplier };
+      });
+      
+      let roll = Math.random() * totalWeight;
+      let current = 0;
+      for (const { fish, weight } of weights) {
+        current += weight;
+        if (roll <= current) {
+          return fish;
+        }
+      }
+      
+      return availableFish[0];
+    },
     update(dt){
       // don't progress while menus open
       if(window.menuActive) return

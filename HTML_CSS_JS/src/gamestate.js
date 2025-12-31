@@ -4,6 +4,12 @@
     state: 'menu', // 'menu' | 'playing' | 'paused'
     listeners: [],
     
+    // Current game session
+    currentRoom: 'lake_shallow_dock',
+    currentBait: 'worms',
+    catches: [], // Array of catch records for today
+    lastCatch: null, // Last caught fish
+    
     // Progression system
     progression: {
       totalCatches: 0,
@@ -19,6 +25,10 @@
     
     init(){ 
       this.state = 'menu'; 
+      this.currentRoom = 'lake_shallow_dock';
+      this.currentBait = 'worms';
+      this.catches = [];
+      this.lastCatch = null;
       this._broadcast(); 
       if(typeof window !== 'undefined') window.menuActive = true;
       this._loadProgression();
@@ -46,6 +56,40 @@
       }
       this._checkUnlocks();
       this._saveProgression();
+    },
+    
+    // Record a catch in today's session
+    addCatch(fish) {
+      const catchRecord = {
+        id: Date.now(),
+        fish: fish,
+        time: new Date(),
+        location: this.currentRoom,
+        baitUsed: this.currentBait
+      };
+      this.catches.push(catchRecord);
+      this.lastCatch = catchRecord;
+      this.recordCatch(fish.name, fish.rarity === 'legendary');
+      this._broadcast();
+    },
+    
+    // Clear today's catches (for new day)
+    clearCatches() {
+      this.catches = [];
+      this.lastCatch = null;
+      this._broadcast();
+    },
+    
+    // Set current room
+    setCurrentRoom(roomId) {
+      this.currentRoom = roomId;
+      this._broadcast();
+    },
+    
+    // Set current bait
+    setCurrentBait(baitType) {
+      this.currentBait = baitType;
+      this._broadcast();
     },
     
     addLore(loreEntry){

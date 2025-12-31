@@ -1,0 +1,315 @@
+@import '@fontsource/press-start-2p';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hopeless Catch - Cozy Fishing Horror Design System */
+
+@layer base {
+  :root {
+    /* Day Theme - Warm, cozy, peaceful */
+    --background: 35 30% 12%;
+    --foreground: 42 35% 85%;
+
+    --card: 30 25% 18%;
+    --card-foreground: 42 35% 85%;
+
+    --popover: 30 25% 15%;
+    --popover-foreground: 42 35% 85%;
+
+    --primary: 32 80% 55%;
+    --primary-foreground: 35 30% 10%;
+
+    --secondary: 180 25% 35%;
+    --secondary-foreground: 42 35% 90%;
+
+    --muted: 30 20% 22%;
+    --muted-foreground: 35 20% 55%;
+
+    --accent: 45 90% 60%;
+    --accent-foreground: 35 30% 10%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 25% 28%;
+    --input: 30 20% 25%;
+    --ring: 32 80% 55%;
+
+    --radius: 0.25rem;
+
+    /* Game-specific colors */
+    --water-day: 195 60% 45%;
+    --water-night: 240 50% 20%;
+    --sky-day: 200 70% 70%;
+    --sky-night: 250 60% 12%;
+    --grass: 120 35% 30%;
+    --wood: 25 40% 25%;
+    --horror-glow: 120 70% 40%;
+    --blood: 0 80% 40%;
+    --eerie: 280 50% 30%;
+    
+    /* Fishing UI */
+    --tension-low: 120 60% 45%;
+    --tension-medium: 45 90% 55%;
+    --tension-high: 0 80% 55%;
+    
+    /* UI Elements */
+    --panel-bg: 30 25% 16%;
+    --panel-border: 30 30% 35%;
+    --button-hover: 32 80% 45%;
+
+    --sidebar-background: 30 25% 15%;
+    --sidebar-foreground: 42 35% 85%;
+    --sidebar-primary: 32 80% 55%;
+    --sidebar-primary-foreground: 35 30% 10%;
+    --sidebar-accent: 30 25% 22%;
+    --sidebar-accent-foreground: 42 35% 85%;
+    --sidebar-border: 30 25% 28%;
+    --sidebar-ring: 32 80% 55%;
+  }
+
+  .dark {
+    --background: 250 60% 8%;
+    --foreground: 220 20% 75%;
+
+    --card: 250 50% 12%;
+    --card-foreground: 220 20% 75%;
+
+    --popover: 250 50% 10%;
+    --popover-foreground: 220 20% 75%;
+
+    --primary: 120 70% 40%;
+    --primary-foreground: 250 60% 8%;
+
+    --secondary: 280 40% 25%;
+    --secondary-foreground: 220 20% 85%;
+
+    --muted: 250 40% 18%;
+    --muted-foreground: 250 20% 50%;
+
+    --accent: 120 60% 35%;
+    --accent-foreground: 250 60% 8%;
+
+    --border: 250 40% 22%;
+    --input: 250 40% 18%;
+    --ring: 120 70% 40%;
+
+    --water-day: 195 60% 45%;
+    --water-night: 240 50% 15%;
+    --sky-day: 200 70% 70%;
+    --sky-night: 260 70% 8%;
+    --horror-glow: 120 80% 45%;
+    --eerie: 280 60% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Press Start 2P', monospace;
+    image-rendering: pixelated;
+  }
+}
+
+@layer components {
+  .pixel-border {
+    @apply border-4;
+    border-style: solid;
+    border-image: linear-gradient(
+      135deg,
+      hsl(var(--panel-border)) 0%,
+      hsl(30 20% 45%) 50%,
+      hsl(var(--panel-border)) 100%
+    ) 1;
+  }
+
+  .game-panel {
+    @apply bg-card/95 backdrop-blur-sm;
+    border: 4px solid hsl(var(--panel-border));
+    box-shadow: 
+      inset 2px 2px 0 hsl(var(--panel-border) / 0.5),
+      inset -2px -2px 0 hsl(30 15% 15%),
+      4px 4px 0 hsl(0 0% 0% / 0.4);
+  }
+
+  .game-button {
+    @apply px-6 py-3 text-xs uppercase tracking-wider transition-all duration-150;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary)) 0%,
+      hsl(32 80% 45%) 100%
+    );
+    color: hsl(var(--primary-foreground));
+    border: 3px solid hsl(25 60% 30%);
+    box-shadow: 
+      inset 1px 1px 0 hsl(45 80% 70%),
+      inset -1px -1px 0 hsl(25 60% 25%),
+      3px 3px 0 hsl(0 0% 0% / 0.5);
+  }
+
+  .game-button:hover {
+    background: linear-gradient(
+      180deg,
+      hsl(45 90% 60%) 0%,
+      hsl(var(--primary)) 100%
+    );
+    transform: translate(-1px, -1px);
+    box-shadow: 
+      inset 1px 1px 0 hsl(45 80% 75%),
+      inset -1px -1px 0 hsl(25 60% 25%),
+      4px 4px 0 hsl(0 0% 0% / 0.5);
+  }
+
+  .game-button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 
+      inset -1px -1px 0 hsl(45 80% 70%),
+      inset 1px 1px 0 hsl(25 60% 25%),
+      1px 1px 0 hsl(0 0% 0% / 0.5);
+  }
+
+  .game-button-secondary {
+    @apply px-6 py-3 text-xs uppercase tracking-wider transition-all duration-150;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--secondary)) 0%,
+      hsl(180 25% 25%) 100%
+    );
+    color: hsl(var(--secondary-foreground));
+    border: 3px solid hsl(180 30% 20%);
+    box-shadow: 
+      inset 1px 1px 0 hsl(180 25% 50%),
+      inset -1px -1px 0 hsl(180 30% 18%),
+      3px 3px 0 hsl(0 0% 0% / 0.5);
+  }
+
+  .game-button-secondary:hover {
+    background: linear-gradient(
+      180deg,
+      hsl(180 30% 45%) 0%,
+      hsl(var(--secondary)) 100%
+    );
+  }
+
+  .horror-glow {
+    animation: horror-pulse 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px hsl(var(--horror-glow)));
+  }
+
+  .water-shimmer {
+    animation: water-move 4s ease-in-out infinite;
+  }
+
+  .eerie-flicker {
+    animation: flicker 0.15s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  .pixel-text {
+    font-family: 'Press Start 2P', monospace;
+    text-shadow: 2px 2px 0 hsl(0 0% 0% / 0.5);
+  }
+
+  .pixel-text-glow {
+    text-shadow: 
+      2px 2px 0 hsl(0 0% 0% / 0.5),
+      0 0 10px hsl(var(--horror-glow));
+  }
+}
+
+@keyframes horror-pulse {
+  0%, 100% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 5px hsl(var(--horror-glow)));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 20px hsl(var(--horror-glow)));
+  }
+}
+
+@keyframes water-move {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-2px) scaleY(1.02);
+  }
+}
+
+@keyframes flicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes bobber {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(2deg);
+  }
+  50% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(2px) rotate(1deg);
+  }
+}
+
+@keyframes reel {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tension-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-bobber {
+  animation: bobber 2s ease-in-out infinite;
+}
+
+.animate-reel {
+  animation: reel 0.5s linear infinite;
+}
+
+.animate-tension-shake {
+  animation: tension-shake 0.1s ease-in-out infinite;
+}
