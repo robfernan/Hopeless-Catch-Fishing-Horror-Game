@@ -61,7 +61,6 @@ build/
 
 # Game-specific ignores
 saves/
-screenshots/
 *.save
 
 # Backup files
