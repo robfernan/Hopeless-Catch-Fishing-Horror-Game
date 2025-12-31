@@ -56,8 +56,8 @@ tmp/
 temp/
 
 # Build outputs
-dist/
 build/
+# dist/ is needed for GitHub Pages, so don't ignore it
 
 # Game-specific ignores
 saves/
