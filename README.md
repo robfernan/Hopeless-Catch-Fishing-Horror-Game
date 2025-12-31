@@ -12,6 +12,26 @@ This repository contains multiple implementations of Hopeless Catch:
 - **Status:** ✅ Fully functional locally, identical to desktop version
 - **Note:** Requires specific HTTP headers (COOP/COEP) for SharedArrayBuffer support. Works with local Python server but cannot be deployed to GitHub Pages, itch.io, or standard web hosting without custom header support.
 
+#### Web Version Screenshots
+
+**Start Menu**
+![Start Menu](Screenshots/Love2D_Web/startmenu.png)
+
+**Gameplay**
+![Gameplay](Screenshots/Love2D_Web/game.png)
+
+**Catch Trophy**
+![Catch Trophy](Screenshots/Love2D_Web/catchtrophy.png)
+
+**Pause Menu**
+![Pause Menu](Screenshots/Love2D_Web/pausemenu.png)
+
+**Settings**
+![Settings](Screenshots/Love2D_Web/settings.png)
+
+**How to Play**
+![How to Play](Screenshots/Love2D_Web/howtoplay.png)
+
 ### 🖥️ Desktop Version (LÖVE 2D)
 - **Location:** `Love2d Version/`
 - **Technology:** LÖVE 2D (Lua)
@@ -49,6 +69,30 @@ See the relevant README in each directory:
 - [Lovable/README.md](Lovable/README.md) - React guide
 
 For detailed information about the web port, see [Love2d_Web/WEB_PORT_GUIDE.md](Love2d_Web/WEB_PORT_GUIDE.md)
+
+## Technical Notes
+
+### Web Port Limitations
+The WebAssembly port of Hopeless Catch works identically to the desktop version when run locally with proper HTTP headers. However, it cannot be deployed to standard web hosting (GitHub Pages, itch.io, Netlify, Vercel) due to SharedArrayBuffer security requirements that need:
+- `Cross-Origin-Opener-Policy: same-origin`
+- `Cross-Origin-Embedder-Policy: require-corp`
+
+These headers are not supported by free hosting platforms. The game works perfectly with the included local Python server.
+
+### Why LÖVE 2D?
+LÖVE 2D was chosen for this project because:
+- ✅ Consistent behavior across all desktop platforms (Windows, macOS, Linux)
+- ✅ Simple, clean API for 2D game development
+- ✅ Excellent for rapid prototyping and game jams
+- ✅ Lightweight and performant
+- ⚠️ Limited to 2D (3D requires additional libraries like Lovr)
+- ⚠️ Web deployment requires Emscripten/love.js with header limitations
+
+### Future Considerations
+For projects requiring:
+- **Multi-platform web deployment** - Consider web-native frameworks (Phaser 3, Babylon.js, Needle Engine)
+- **3D support** - Consider Lovr (3D extension for LÖVE), Godot, or custom OpenGL/Vulkan
+- **Universal codebase** - Consider frameworks like Nero.js that target multiple platforms from a single codebase
 
 ## Contributing
 
