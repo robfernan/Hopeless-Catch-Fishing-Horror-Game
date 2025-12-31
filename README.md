@@ -4,7 +4,7 @@ A fishing horror game built with LÖVE 2D, featuring procedurally generated land
 
 ## Play Online
 
-🎮 **[Play Hopeless Catch in your browser](https://robfernan.github.io/Hopeless-Catch-Fishing-Horror-Game/)**
+🎮 **[Play Hopeless Catch in your browser](https://robfernan.github.io/Hopeless-Catch-Fishing-Horror-Game/dist/)**
 
 ## Project Versions
 
@@ -13,7 +13,7 @@ This repository contains multiple implementations of Hopeless Catch:
 ### 🎮 Web Version (WebAssembly)
 - **Location:** `Love2d_Web/`
 - **Technology:** LÖVE 2D compiled to WebAssembly with love.js
-- **Play:** https://robfernan.github.io/Hopeless-Catch-Fishing-Horror-Game/
+- **Play:** https://robfernan.github.io/Hopeless-Catch-Fishing-Horror-Game/dist/
 - **Status:** ✅ Fully functional, identical to desktop version
 
 ### 🖥️ Desktop Version (LÖVE 2D)
@@ -35,7 +35,7 @@ This repository contains multiple implementations of Hopeless Catch:
 ## Getting Started
 
 ### Play Online
-Simply visit: https://robfernan.github.io/Hopeless-Catch-Fishing-Horror-Game/
+Simply visit: https://robfernan.github.io/Hopeless-Catch-Fishing-Horror-Game/dist/
 
 ### Run Locally (Desktop)
 1. Install LÖVE 2D from https://love2d.org/
