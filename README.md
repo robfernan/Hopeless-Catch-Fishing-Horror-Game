@@ -114,4 +114,4 @@ For issues, questions, or suggestions, please open an issue on GitHub.
 
 ---
 
-**Enjoy the game and happy fishing! 🎣**
+**Enjoy the game and happy fishing!

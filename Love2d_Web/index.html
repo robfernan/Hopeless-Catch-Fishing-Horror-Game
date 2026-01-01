@@ -27,8 +27,11 @@
         }
         
         #game-container {
-            width: 800px;
-            height: 600px;
+            width: 100%;
+            height: 100%;
+            max-width: 1200px;
+            max-height: 900px;
+            aspect-ratio: 4 / 3;
             border: 2px solid #0f3460;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
             position: relative;
@@ -75,15 +78,25 @@
             container.innerHTML = ''
             container.appendChild(canvas)
             
+            // Calculate responsive dimensions while maintaining 4:3 aspect ratio
+            const containerWidth = container.clientWidth
+            const containerHeight = container.clientHeight
+            const gameWidth = 800
+            const gameHeight = 600
+            
             try {
                 // Create LÖVE game instance with the .love file
                 const game = new window.LOVE({
                     canvas: canvas,
                     gameFile: 'game.love',
-                    width: 800,
-                    height: 600,
+                    width: gameWidth,
+                    height: gameHeight,
                     pixelated: true
                 })
+                
+                // Scale canvas to fit container
+                canvas.style.width = '100%'
+                canvas.style.height = '100%'
                 
                 // Start the game
                 game.load()
