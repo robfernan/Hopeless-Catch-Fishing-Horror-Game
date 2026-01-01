@@ -6,11 +6,56 @@ A fishing horror game built with LÖVE 2D, featuring procedurally generated land
 
 This repository contains multiple implementations of Hopeless Catch:
 
-### 🎮 Web Version (WebAssembly) - Local Only
+### 🎮 Web Version (WebAssembly) - Itch.io & Local
 - **Location:** `Love2d_Web/`
 - **Technology:** LÖVE 2D compiled to WebAssembly with love.js
-- **Status:** ✅ Fully functional locally, identical to desktop version
-- **Note:** Requires specific HTTP headers (COOP/COEP) for SharedArrayBuffer support. Works with local Python server but cannot be deployed to GitHub Pages, itch.io, or standard web hosting without custom header support.
+- **Status:** ✅ Fully functional on itch.io and locally
+- **Play Online:** [https://mungdaal321.itch.io/hopeless-catch](https://mungdaal321.itch.io/hopeless-catch)
+
+#### Itch.io Upload Settings (Important!)
+
+When uploading the web version to itch.io, use these exact settings:
+
+**Upload Settings:**
+- **Kind of project:** `HTML` — You have a ZIP or HTML file that will be played in the browser
+- **Upload:** ZIP file from `Love2d_Web/dist/` folder
+
+**Embed Options:**
+- ✅ **Embed in page**
+- ✅ **Manually set size**
+- **Viewport dimensions:** `1280` × `720` px (fits everything properly)
+
+**Frame Options:**
+- ✅ **Mobile friendly** — Your project can run on mobile phones
+- **Orientation:** Default
+- ❌ **Automatically start on page load** — Leave unchecked (not recommended)
+- ✅ **Fullscreen button** — Add a button to the bottom right corner
+- ❌ **Enable scrollbars** — Leave unchecked
+- ✅ **SharedArrayBuffer support** — REQUIRED! (Experimental) Enable this or the game won't run
+
+**Theme Settings (for screenshots to display):**
+- Go to **Edit Theme**
+- Set **Screenshots** to **Show** (not Auto)
+
+#### Itch.io Screenshots
+
+**Start Menu**
+![Start Menu](Screenshots/Itch_io/StartMenu.png)
+
+**Gameplay**
+![Gameplay](Screenshots/Itch_io/Game.png)
+
+**Catch Display**
+![Catch Display](Screenshots/Itch_io/CatchDisplay.png)
+
+**Tackle Box**
+![Tackle Box](Screenshots/Itch_io/tacklebox.png)
+
+**How to Play**
+![How to Play](Screenshots/Itch_io/howto.png)
+
+**Full Game View**
+![Full Game View](Screenshots/Itch_io/fullscreenshot.png)
 
 #### Web Version Screenshots
 
@@ -56,10 +101,26 @@ This repository contains multiple implementations of Hopeless Catch:
 3. Open with LÖVE 2D or run: `love HopelessCatch.love`
 
 ### Run Locally (Web)
-1. Navigate to `Love2d_Web/`
-2. Run: `python3 serve.py`
-3. Open: http://localhost:3000/
-4. Game will run perfectly with all features functional
+The web version requires special HTTP headers (SharedArrayBuffer support). Use the included Python server:
+
+```bash
+# Navigate to the web version folder
+cd Love2d_Web
+
+# Start the local server (includes required COOP/COEP headers)
+python3 serve.py
+
+# Open in browser
+# http://localhost:3000/
+```
+
+**Troubleshooting:**
+- If the screen is blank, try refreshing the page
+- Use Chrome, Firefox, or Edge for best compatibility
+- Click the game area first to enable keyboard input
+- Press the "Go Fullscreen" button for the best experience
+
+**To stop the server:** Press `Ctrl+C` in the terminal
 
 ## Development
 
@@ -72,12 +133,16 @@ For detailed information about the web port, see [Love2d_Web/WEB_PORT_GUIDE.md](
 
 ## Technical Notes
 
-### Web Port Limitations
-The WebAssembly port of Hopeless Catch works identically to the desktop version when run locally with proper HTTP headers. However, it cannot be deployed to standard web hosting (GitHub Pages, itch.io, Netlify, Vercel) due to SharedArrayBuffer security requirements that need:
+### Web Port Requirements
+The WebAssembly port requires SharedArrayBuffer support, which needs special HTTP headers:
 - `Cross-Origin-Opener-Policy: same-origin`
 - `Cross-Origin-Embedder-Policy: require-corp`
 
-These headers are not supported by free hosting platforms. The game works perfectly with the included local Python server.
+**Hosting Compatibility:**
+- ✅ **itch.io** — Works! Enable "SharedArrayBuffer support" in embed options
+- ✅ **Local Python server** — Works with included `serve.py`
+- ❌ **GitHub Pages** — Does not support required headers
+- ❌ **Netlify/Vercel (free tier)** — Does not support required headers
 
 ### Why LÖVE 2D?
 LÖVE 2D was chosen for this project because:
@@ -93,6 +158,17 @@ For projects requiring:
 - **Multi-platform web deployment** - Consider web-native frameworks (Phaser 3, Babylon.js, Needle Engine)
 - **3D support** - Consider Lovr (3D extension for LÖVE), Godot, or custom OpenGL/Vulkan
 - **Universal codebase** - Consider frameworks like Nero.js that target multiple platforms from a single codebase
+
+## Game Controls
+
+| Action | Key |
+|--------|-----|
+| Move | WASD or Arrow Keys |
+| Cast / Hook / Reel | SPACE |
+| Open Tackle Box | B |
+| Open Journal | TAB |
+| Enter Cabin | H |
+| Pause | ESC |
 
 ## Contributing
 
@@ -114,4 +190,6 @@ For issues, questions, or suggestions, please open an issue on GitHub.
 
 ---
 
-**Enjoy the game and happy fishing!
+🏆 *Created for [The Fishing Horror Jam](https://itch.io/jam/the-fishing-horror-jam)*
+
+**Enjoy the game and happy fishing!** 🎣🌅
