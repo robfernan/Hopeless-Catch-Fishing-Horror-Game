@@ -21,32 +21,32 @@ function Theme:apply()
     end
 
     -- Window
-    setColor(imgui.ImGuiCol_WindowBg,             col(0.04, 0.04, 0.06, 0.92))
-    setColor(imgui.ImGuiCol_ChildBg,              col(0.06, 0.06, 0.08, 0.85))
-    setColor(imgui.ImGuiCol_PopupBg,              col(0.05, 0.05, 0.07, 0.95))
+    setColor(imgui.ImGuiCol_WindowBg,             col(0.06, 0.06, 0.09, 0.94))
+    setColor(imgui.ImGuiCol_ChildBg,              col(0.08, 0.08, 0.11, 0.90))
+    setColor(imgui.ImGuiCol_PopupBg,              col(0.08, 0.08, 0.11, 0.98))
     
     -- Borders
-    setColor(imgui.ImGuiCol_Border,               col(0.15, 0.12, 0.10, 0.6))
+    setColor(imgui.ImGuiCol_Border,               col(0.35, 0.28, 0.22, 0.8))
     setColor(imgui.ImGuiCol_BorderShadow,         col(0, 0, 0, 0))
     
     -- Text
-    setColor(imgui.ImGuiCol_Text,                 col(0.82, 0.78, 0.72, 1.0))   -- warm off-white
-    setColor(imgui.ImGuiCol_TextDisabled,         col(0.35, 0.33, 0.30, 1.0))
+    setColor(imgui.ImGuiCol_Text,                 col(0.95, 0.92, 0.88, 1.0))   -- bright warm white
+    setColor(imgui.ImGuiCol_TextDisabled,         col(0.55, 0.52, 0.48, 1.0))
     
     -- Frame Backgrounds
-    setColor(imgui.ImGuiCol_FrameBg,              col(0.10, 0.08, 0.08, 0.8))
-    setColor(imgui.ImGuiCol_FrameBgHovered,       col(0.25, 0.12, 0.10, 0.8))
-    setColor(imgui.ImGuiCol_FrameBgActive,        col(0.35, 0.15, 0.10, 0.9))
+    setColor(imgui.ImGuiCol_FrameBg,              col(0.18, 0.15, 0.14, 0.9))
+    setColor(imgui.ImGuiCol_FrameBgHovered,       col(0.35, 0.22, 0.18, 0.9))
+    setColor(imgui.ImGuiCol_FrameBgActive,        col(0.45, 0.25, 0.18, 1.0))
     
-    -- Buttons - dark wood/iron with red hover
-    setColor(imgui.ImGuiCol_Button,               col(0.12, 0.10, 0.09, 0.85))
-    setColor(imgui.ImGuiCol_ButtonHovered,        col(0.35, 0.14, 0.10, 0.9))
-    setColor(imgui.ImGuiCol_ButtonActive,         col(0.50, 0.20, 0.12, 1.0))
+    -- Buttons - clear dark iron background with glowing blood-orange hover/active
+    setColor(imgui.ImGuiCol_Button,               col(0.20, 0.17, 0.16, 0.95))
+    setColor(imgui.ImGuiCol_ButtonHovered,        col(0.55, 0.22, 0.15, 1.0))
+    setColor(imgui.ImGuiCol_ButtonActive,         col(0.70, 0.28, 0.18, 1.0))
     
     -- Headers (selected items)
-    setColor(imgui.ImGuiCol_Header,               col(0.30, 0.12, 0.08, 0.7))
-    setColor(imgui.ImGuiCol_HeaderHovered,        col(0.45, 0.18, 0.12, 0.9))
-    setColor(imgui.ImGuiCol_HeaderActive,         col(0.55, 0.22, 0.14, 1.0))
+    setColor(imgui.ImGuiCol_Header,               col(0.45, 0.20, 0.14, 0.85))
+    setColor(imgui.ImGuiCol_HeaderHovered,        col(0.60, 0.25, 0.16, 1.0))
+    setColor(imgui.ImGuiCol_HeaderActive,         col(0.75, 0.30, 0.18, 1.0))
     
     -- Tabs (Dear ImGui 1.92+ uses Tab, TabHovered, TabSelected, TabDimmed, TabDimmedSelected)
     setColor(imgui.ImGuiCol_Tab,                  col(0.15, 0.13, 0.11, 0.8))

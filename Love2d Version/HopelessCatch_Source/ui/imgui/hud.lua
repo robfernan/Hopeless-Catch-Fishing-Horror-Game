@@ -109,8 +109,8 @@ function HUD:draw()
             end
             
             imgui.PushStyleColor(imgui.Col_FrameBg, {0.08, 0.08, 0.1, 1})
-            imgui.PushStyleColor(imgui.Col_SliderGrab, barColor)
-            imgui.SliderFloat("##tension", tension, 0, 1, "", 0)
+            imgui.PushStyleColor(imgui.Col_PlotHistogram, barColor)
+            imgui.ProgressBar(tension, nil, "")
             imgui.PopStyleColor(2)
             
             -- === Reel progress (during reeling) ===
@@ -121,8 +121,8 @@ function HUD:draw()
                 imgui.Text("REEL PROGRESS")
                 
                 imgui.PushStyleColor(imgui.Col_FrameBg, {0.08, 0.1, 0.08, 1})
-                imgui.PushStyleColor(imgui.Col_SliderGrab, {0.25, 0.75, 0.3, 1})
-                imgui.SliderFloat("##progress", progress, 0, 1, "", 0)
+                imgui.PushStyleColor(imgui.Col_PlotHistogram, {0.25, 0.75, 0.3, 1})
+                imgui.ProgressBar(progress, nil, "")
                 imgui.PopStyleColor(2)
             end
             
@@ -148,8 +148,8 @@ function HUD:draw()
             else pColor = {0.9, 0.5, 0.2, 1} end
             
             imgui.PushStyleColor(imgui.Col_FrameBg, {0.08, 0.08, 0.1, 1})
-            imgui.PushStyleColor(imgui.Col_SliderGrab, pColor)
-            imgui.SliderFloat("##castpower", power, 0, 1, "", 0)
+            imgui.PushStyleColor(imgui.Col_PlotHistogram, pColor)
+            imgui.ProgressBar(power, nil, "")
             imgui.PopStyleColor(2)
             
             imgui.Spacing()

@@ -52,15 +52,18 @@ function PauseMenu:draw()
     }
     
     for i, opt in ipairs(options) do
-        if self.selectedOption == i then
-            imgui.PushStyleColor(imgui.Col_Text, {1.0, 0.88, 0.72, 1})
+        local isSelected = (self.selectedOption == i)
+        if isSelected then
+            imgui.PushStyleColor(imgui.Col_Text, {1.0, 0.95, 0.85, 1.0})
+            imgui.PushStyleColor(imgui.Col_Button, {0.45, 0.18, 0.12, 1.0})
+        else
+            imgui.PushStyleColor(imgui.Col_Text, {0.90, 0.86, 0.80, 1.0})
+            imgui.PushStyleColor(imgui.Col_Button, {0.18, 0.16, 0.15, 0.95})
         end
         
         local clicked = imgui.Button(opt.text .. "##pause" .. i, panelW - 40, 34)
         
-        if self.selectedOption == i then
-            imgui.PopStyleColor()
-        end
+        imgui.PopStyleColor(2)
         
         -- Keyboard nav
         if love.keyboard.isDown("up") and not self._navLock then
