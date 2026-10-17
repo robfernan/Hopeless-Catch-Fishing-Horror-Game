@@ -1,7 +1,7 @@
 -- conf.lua - Hopeless Catch Engine Configuration
 function love.conf(t)
     t.identity = "HopelessCatch"
-    t.version = "11.5"
+    t.version = "11.4"
     
     t.window.title = "Hopeless Catch"
     t.window.width = 1280

@@ -65,15 +65,29 @@ function TackleBox.draw(w, h)
             love.graphics.rectangle("line", slotX, slotY, slotW, slotH, 6, 6)
         end
         
-        -- Inner compartment divider ribs
-        love.graphics.setColor(0.08, 0.09, 0.10, 0.8)
-        love.graphics.rectangle("fill", slotX + 6, slotY + 6, 64, slotH - 12, 4, 4)
+        -- Inner compartment divider box with gentle highlight
+        love.graphics.setColor(0.18, 0.22, 0.25, 0.95)
+        love.graphics.rectangle("fill", slotX + 6, slotY + 6, 64, slotH - 12, 6, 6)
+        love.graphics.setColor(0.35, 0.40, 0.45, 0.8)
+        love.graphics.rectangle("line", slotX + 6, slotY + 6, 64, slotH - 12, 6, 6)
         
-        -- Bait Sprite
+        -- Draw User Bait Sprite (from assets/bait/*.png)
+        local iconCx = slotX + 38
+        local iconCy = slotY + (slotH * 0.5)
         local img = Assets.getImage(b.asset)
+        
         if img then
+            -- Draw user sprite cleanly centered in the compartment box at 1.4x scale
             love.graphics.setColor(1, 1, 1, 1)
-            love.graphics.draw(img, slotX + 16, slotY + 12, 0, 2.2, 2.2)
+            local iw, ih = img:getDimensions()
+            love.graphics.draw(img, iconCx, iconCy, 0, 1.4, 1.4, iw * 0.5, ih * 0.5)
+        elseif b.id == "rotten_meat" then
+            -- Putrid rotten purple & sickly green necrotic meat chunk
+            love.graphics.setColor(0.48, 0.18, 0.35, 1.0)
+            love.graphics.polygon("fill", iconCx - 14, iconCy + 8, iconCx + 14, iconCy + 10, iconCx + 12, iconCy - 8, iconCx - 10, iconCy - 10)
+            love.graphics.setColor(0.35, 0.70, 0.30, 0.9) -- Rotten fungal spots
+            love.graphics.circle("fill", iconCx - 4, iconCy + 2, 3)
+            love.graphics.circle("fill", iconCx + 5, iconCy - 2, 2.5)
         end
         
         -- Bait Name & Quantity Badge

@@ -1,11 +1,12 @@
 -- src/world/terrain.lua - Shoreline, Dilapidated Cabin, and Wooden Pier
 local Terrain = {}
 
-function Terrain.draw(w, h, dayNight)
+-- Distant Background Layer (Rendered BEHIND water and sky horizon)
+function Terrain.drawBackground(w, h, dayNight)
     local amb = dayNight.getAmbientColor()
-    local horizonY = h * 0.46
+    local horizonY = h * 0.44
     
-    -- Distant Mountain Ridges across the far lake
+    -- Distant Mountain Ridges across the far lake (Sitting behind water surface)
     love.graphics.setColor(amb[1] * 0.35, amb[2] * 0.42, amb[3] * 0.55, 0.90)
     local mountainPoly = {
         0, horizonY,
@@ -26,6 +27,11 @@ function Terrain.draw(w, h, dayNight)
         local th = 16 + (x % 5) * 4
         love.graphics.polygon("fill", x - 8, horizonY, x + 8, horizonY, x, horizonY - th)
     end
+end
+
+-- Foreground Pier Layer (Rendered OVER the water surface in front of player)
+function Terrain.draw(w, h, dayNight)
+    local amb = dayNight.getAmbientColor()
     
     -- Compact Foreground Pier (Fisherman stands at the front edge, open lake water directly in front)
     local dockEdgeY = h * 0.78

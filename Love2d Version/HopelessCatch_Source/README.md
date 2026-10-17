@@ -1,6 +1,14 @@
-# HOPELESS CATCH
-### *Rotten Tide & Forbidden Waters*
-*A Psychological Fishing Horror Game built with LÖVE 11.5*
+<div align="center">
+  <img src="assets/itch_cover.jpg" alt="Hopeless Catch Banner" width="100%" />
+
+  [![Itch.io](https://img.shields.io/badge/Play_on-Itch.io-fa5c5c?logo=itchdotio&logoColor=white)](https://mungdaal321.itch.io/hopeless-catch)
+  [![Made with LÖVE](https://img.shields.io/badge/LÖVE-11.5-e64e86?logo=lua&logoColor=white)](https://love2d.org)
+  [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Web%20%7C%20LÖVE-blue)](https://mungdaal321.itch.io/hopeless-catch)
+
+  # HOPELESS CATCH
+  ### *Rotten Tide & Forbidden Waters*
+  *A Psychological Fishing Horror Game built with LÖVE 11.5*
+</div>
 
 ---
 

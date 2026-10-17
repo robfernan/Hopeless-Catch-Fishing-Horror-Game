@@ -138,11 +138,14 @@ function PlayState:draw()
     SkyRenderer.draw(DayNight, w, h)
     Weather.drawSky(w, h, DayNight)
     
-    -- 2. Water Surface Layer (Mode-7 2.5D deep lake lakebed)
+    -- 2. Distant Mountains & Horizon Forest Layer (Behind water)
+    Terrain.drawBackground(w, h, DayNight)
+    
+    -- 3. Water Surface Layer (Mode-7 2.5D deep lake lakebed)
     Water.draw(w, h, DayNight)
     Weather.drawOverlays(w, h, horizonY, dockEdgeY)
     
-    -- 3. Terrain & Foreground Pier Layer (Drawn over water under fisherman feet)
+    -- 4. Foreground Pier Layer (Drawn over water under fisherman feet)
     Terrain.draw(w, h, DayNight)
     
     -- 4. Entity & Fishing Line Layer
