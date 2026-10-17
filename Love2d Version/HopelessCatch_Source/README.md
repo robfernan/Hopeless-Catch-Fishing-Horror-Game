@@ -159,3 +159,77 @@ HopelessCatch_Source/
 │       └── baitdata.lua      -- Bait affinities, rotten tide transformations
 └── cimgui/                   -- ImGui bindings & native wrappers
 ```
+
+---
+
+## 🚀 Multi-Platform Packaging & Itch.io Butler Publishing
+
+Hopeless Catch is deployed across three channels on itch.io:
+1. **`html5`**: Playable directly in modern web browsers (Emscripten / love.js 11.4).
+2. **`windows`**: Standalone 64-bit executable fused with LÖVE 11.5 + SDL2/OpenAL runtime DLLs.
+3. **`love`**: Universal `.love` file for macOS, Linux, Steam Deck, or custom LÖVE installs.
+
+### 📦 1. Build All Formats
+
+From PowerShell in `HopelessCatch_Source`:
+
+```powershell
+# 1. Package the universal .love file
+if (Test-Path '..\dist\love') { Remove-Item -Recurse -Force '..\dist\love' }
+New-Item -ItemType Directory -Force '..\dist\love'
+Compress-Archive -Path * -DestinationPath '..\dist\love\HopelessCatch.zip' -Force
+Move-Item -Force '..\dist\love\HopelessCatch.zip' '..\dist\love\HopelessCatch.love'
+
+# 2. Fuse the Windows Standalone Executable
+cmd /c copy /b /y 'C:\Love2D\love-11.5-win64\love.exe' + '..\dist\love\HopelessCatch.love' '..\dist\windows\HopelessCatch.exe'
+
+# 3. Synchronize Web Port Data & Emscripten Byte Offsets
+Copy-Item -Force '..\dist\love\HopelessCatch.love' '..\..\Love2d_Web\dist\game.data'
+
+# Synchronize exact package bytes in game.js (prevents Emscripten startup errors)
+node -e "const fs = require('fs'); const path = require('path'); const dataPath = path.resolve('../../Love2d_Web/dist/game.data'); const jsPath = path.resolve('../../Love2d_Web/dist/game.js'); const len = fs.statSync(dataPath).size; let js = fs.readFileSync(jsPath, 'utf8'); js = js.replace(/\"remote_package_size\":\d+/, '\"remote_package_size\":' + len); js = js.replace(/\"end\":\d+/, '\"end\":' + len); fs.writeFileSync(jsPath, js, 'utf8'); console.log('Synced game.js to length:', len);"
+```
+
+> [!IMPORTANT]
+> **Web Port Compatibility**: Keep `t.version = "11.4"` in `conf.lua`. This avoids the browser compatibility warning dialog while preserving full compatibility across both LÖVE 11.4 and 11.5.
+
+---
+
+### 🚢 2. Push to Itch.io via Butler CLI
+
+Using your authenticated Butler executable (e.g. `C:\Users\MungDaal321\Downloads\butler-windows-amd64\butler.exe`):
+
+```powershell
+$BUTLER = "C:\Users\MungDaal321\Downloads\butler-windows-amd64\butler.exe"
+$TARGET = "mungdaal321/hopeless-catch"
+$VERSION = "1.0.3"
+
+# Upload Web Build
+& $BUTLER push "..\..\Love2d_Web\dist" "$TARGET:html5" --userversion $VERSION
+
+# Upload Windows Build
+& $BUTLER push "..\dist\windows" "$TARGET:windows" --userversion $VERSION
+
+# Upload .love Universal File
+& $BUTLER push "..\dist\love" "$TARGET:love" --userversion $VERSION
+
+# Check Status
+& $BUTLER status $TARGET
+```
+
+---
+
+### ⚙️ 3. Itch.io Page Settings Reference
+
+* **Kind of Project**: `HTML`
+* **Embed Options**: `Embed in page`
+* **Viewport Dimensions**: `1280` px × `720` px (16:9 widescreen)
+* **Orientation**: `Default` or `Landscape`
+* **Fullscreen Button**: `Checked`
+* **Enable Scrollbars**: `Unchecked`
+* **SharedArrayBuffer Support**: `Unchecked`
+* **Files Configuration**:
+  - `html5`: Mark with **"This file will be played in the browser"**
+  - `windows`: Mark with the **Windows** platform icon
+  - `love`: Available as direct download for all platforms
+
