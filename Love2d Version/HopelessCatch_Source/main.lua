@@ -204,6 +204,9 @@ function love.update(dt)
     
     if state == "menu" then
         MainMenu:update(dt)
+        DayNightCycle:update(dt * 0.25)
+        Weather:update(dt)
+        LakeElements:update(dt)
         
     elseif state == "playing" then
         -- Update UI systems
@@ -239,7 +242,25 @@ function love.draw()
     local state = GameState:getState()
     
     if state == "menu" then
-        -- Menu is drawn in the IMGUI LAYER pass below
+        -- Draw living game world background behind the menu
+        love.graphics.push()
+        World:drawBackground()
+        LakeElements:draw()
+        DayNightCycle:beginLighting()
+        World:drawWater()
+        World:drawForeground()
+        DayNightCycle:endLighting()
+        Weather:draw()
+        love.graphics.pop()
+        
+        -- Dark atmospheric vignette over the world so menu text pop and look cinematic
+        local w, h = love.graphics.getDimensions()
+        love.graphics.setColor(0.02, 0.03, 0.06, 0.55)
+        love.graphics.rectangle("fill", 0, 0, w, h)
+        
+        -- Subtle gradient darkness at the top for title readability
+        love.graphics.setColor(0, 0, 0, 0.35)
+        love.graphics.rectangle("fill", 0, 0, w, h * 0.45)
     elseif state == "playing" then
         -- Apply screen shake to world rendering
         love.graphics.push()

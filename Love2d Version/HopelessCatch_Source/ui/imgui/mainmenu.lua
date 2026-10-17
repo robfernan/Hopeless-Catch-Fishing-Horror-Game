@@ -20,10 +20,6 @@ end
 function MainMenu:draw()
     local w, h = love.graphics.getDimensions()
     
-    -- Full-screen dark background (drawn with Love2D before ImGui)
-    love.graphics.setColor(0.02, 0.02, 0.04, 1)
-    love.graphics.rectangle("fill", 0, 0, w, h)
-    
     -- Subtle animated water ripple at bottom (Love2D layer)
     local t = self.animationTimer
     love.graphics.setColor(0.05, 0.08, 0.15, 0.4)

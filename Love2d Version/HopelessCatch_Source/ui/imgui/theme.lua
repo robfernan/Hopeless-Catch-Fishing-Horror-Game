@@ -21,9 +21,9 @@ function Theme:apply()
     end
 
     -- Window
-    setColor(imgui.ImGuiCol_WindowBg,             col(0.06, 0.06, 0.09, 0.94))
-    setColor(imgui.ImGuiCol_ChildBg,              col(0.08, 0.08, 0.11, 0.90))
-    setColor(imgui.ImGuiCol_PopupBg,              col(0.08, 0.08, 0.11, 0.98))
+    setColor(imgui.ImGuiCol_WindowBg,             col(0.07, 0.07, 0.10, 0.82))
+    setColor(imgui.ImGuiCol_ChildBg,              col(0.08, 0.08, 0.11, 0.80))
+    setColor(imgui.ImGuiCol_PopupBg,              col(0.09, 0.09, 0.12, 0.94))
     
     -- Borders
     setColor(imgui.ImGuiCol_Border,               col(0.35, 0.28, 0.22, 0.8))

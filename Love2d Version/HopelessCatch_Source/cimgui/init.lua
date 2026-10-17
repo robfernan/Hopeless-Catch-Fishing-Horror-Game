@@ -61,6 +61,20 @@ function M.ArrowButton(str_id, dir, ...)
     return orig_ArrowButton(str_id, dir)
 end
 
+function M.PushID(id)
+    if type(id) == "string" then
+        return M.PushID_Str(id)
+    elseif type(id) == "number" then
+        return M.PushID_Int(id)
+    else
+        return M.PushID_Ptr(id)
+    end
+end
+
+M.PopID = M.PopID or function()
+    return M.C.igPopID()
+end
+
 function M.PushStyleColor(idx, col)
     if type(col) == "table" and #col >= 3 then
         local c = ImVec4_type(col[1], col[2], col[3], col[4] or 1.0)
