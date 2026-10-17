@@ -3,7 +3,7 @@ local Assets = require("src.core.assets")
 
 local Player = {
     x = 450,
-    y = 380,
+    y = 606,
     vx = 0,
     speed = 180,
     facing = 1, -- 1 = right, -1 = left
@@ -13,7 +13,7 @@ local Player = {
 
 function Player.init(startX, startY)
     Player.x = startX or 450
-    Player.y = startY or 380
+    Player.y = startY or 606
     Player.vx = 0
     Player.facing = 1
     Player.isFishing = false
@@ -42,27 +42,57 @@ function Player.update(dt, input, canMove, minX, maxX)
     if maxX and Player.x > maxX then Player.x = maxX end
 end
 
-function Player.draw()
-    local img = Assets.getImage("player_back") or Assets.getImage("player")
+function Player.draw(fishingState)
+    local sheet = Assets.getImage("player_sheet")
     local bob = (Player.vx ~= 0) and math.sin(Player.walkTimer) * 3 or 0
     
-    if img then
-        local iw = img:getWidth()
-        local ih = img:getHeight()
-        -- Target height ~170px for dramatic arcade foreground depth
-        local scale = 170 / ih
+    -- Ground drop shadow firmly anchoring boots to the wooden pier planks
+    love.graphics.setColor(0.06, 0.04, 0.02, 0.60)
+    love.graphics.ellipse("fill", Player.x, Player.y - 1, 28, 8)
+    
+    if sheet and Assets.quads.player then
+        local q = Assets.quads.player.idle
+        local isFlip = (Player.facing == -1)
+        
+        if fishingState == "charging" then
+            q = isFlip and Assets.quads.player.charge_flip or Assets.quads.player.charge
+        elseif fishingState == "flying" or fishingState == "bobbing" or fishingState == "biting" then
+            q = isFlip and Assets.quads.player.cast_flip or Assets.quads.player.cast
+        elseif fishingState == "reeling" then
+            q = isFlip and Assets.quads.player.reel_flip or Assets.quads.player.reel
+        else
+            q = isFlip and Assets.quads.player.idle_flip or Assets.quads.player.idle
+        end
+        
+        local _, _, qw, qh = q:getViewport()
+        local scale = 160 / qh
         love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(img, Player.x, Player.y + bob + 4, 0, scale, scale, iw * 0.5, ih)
+        love.graphics.draw(sheet, q, Player.x, Player.y + bob + 4, 0, scale, scale, qw * 0.5, qh)
     else
-        love.graphics.setColor(0.18, 0.22, 0.26, 1.0)
-        love.graphics.rectangle("fill", Player.x - 20, Player.y - 120 + bob, 40, 120)
+        local img = Assets.getImage("player_back") or Assets.getImage("player")
+        if img then
+            local iw = img:getWidth()
+            local ih = img:getHeight()
+            local scale = 160 / ih
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.draw(img, Player.x, Player.y + bob + 4, 0, scale, scale, iw * 0.5, ih)
+        end
     end
 end
 
-function Player.getRodTip()
+function Player.getRodTip(fishingState)
     local bob = (Player.vx ~= 0) and math.sin(Player.walkTimer) * 3 or 0
-    -- Tip extends forward and up into the lake view
-    return Player.x + 36, Player.y - 148 + bob
+    local f = Player.facing or 1
+    
+    if fishingState == "charging" then
+        return Player.x - (33 * f), Player.y - 144 + bob
+    elseif fishingState == "reeling" then
+        return Player.x + (56 * f), Player.y - 148 + bob
+    elseif fishingState == "flying" or fishingState == "bobbing" or fishingState == "biting" then
+        return Player.x + (36 * f), Player.y - 148 + bob
+    else -- idle
+        return Player.x - (68 * f), Player.y - 86 + bob
+    end
 end
 
 return Player

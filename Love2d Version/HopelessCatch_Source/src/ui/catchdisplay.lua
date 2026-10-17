@@ -30,15 +30,22 @@ function CatchDisplay.draw(w, h, fish)
     love.graphics.setColor(0.95, 0.35, 0.25, 1.0)
     love.graphics.printf(fish.name:upper(), mx, my + 55, modalW, "center")
     
-    -- Render Fish Sprite
+    -- Render Fish / Boss Sprite
     local img = Assets.getImage(fish.asset)
     if img then
-        local iw = img:getWidth()
-        local ih = img:getHeight()
-        -- Target display size ~110px tall
-        local scale = 110 / ih
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(img, w * 0.5, my + 150, 0, scale, scale, iw * 0.5, ih * 0.5)
+        if fish.id == "fishman" and Assets.quads.fishman then
+            local q = (math.sin(love.timer.getTime() * 4) > 0) and Assets.quads.fishman.roar or Assets.quads.fishman.strike
+            local _, _, qw, qh = q:getViewport()
+            local scale = 140 / qh
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.draw(img, w * 0.5, my + 150, 0, scale, scale, qw * 0.5, qh * 0.5)
+        else
+            local iw = img:getWidth()
+            local ih = img:getHeight()
+            local scale = 110 / ih
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.draw(img, w * 0.5, my + 150, 0, scale, scale, iw * 0.5, ih * 0.5)
+        end
     end
     
     -- Fish Lore / Creepy Narrative Note

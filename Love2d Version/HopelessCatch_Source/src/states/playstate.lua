@@ -4,6 +4,7 @@ local SkyRenderer = require("src.world.skyrenderer")
 local Terrain = require("src.world.terrain")
 local Water = require("src.world.water")
 local Lighting = require("src.world.lighting")
+local Weather = require("src.world.weather")
 
 local Player = require("src.entities.player")
 local DayNight = require("src.systems.daynight")
@@ -31,9 +32,16 @@ function PlayState:enter(params)
     self.modal = nil
     self.cabinTimer = 0
     local w, h = love.graphics.getDimensions()
-    local minX, maxX, pierNearY = Terrain.getDockBounds(w, h)
-    Player.init(w * 0.5, pierNearY - 10)
+    local minX, maxX, standY, horizonY, dockEdgeY, lanternX, lanternY = Terrain.getDockBounds(w, h)
+    Player.init(w * 0.5, standY)
     Assets.startAmbient()
+    Weather.init()
+    
+    -- Begin game in full daylight with golden sunlight
+    DayNight.time = 0.45
+    DayNight.isNight = false
+    DayNight.day = 1
+    DayNight.rottenTideLevel = 1.0
     
     if params and params.openJournal then
         self.modal = "journal"
@@ -48,8 +56,16 @@ end
 
 function PlayState:update(dt)
     local w, h = love.graphics.getDimensions()
-    local minX, maxX, standY = Terrain.getDockBounds(w, h)
-    local waterY = h * 0.62
+    local minX, maxX, standY, horizonY, dockEdgeY, lanternX, lanternY = Terrain.getDockBounds(w, h)
+    
+    -- Firmly lock fisherman feet to the wooden dock planks!
+    Player.y = standY
+    
+    -- Ensure game is in bright sunlight when starting day 1
+    if DayNight.day == 1 and DayNight.time > 0.80 then
+        DayNight.time = 0.45
+        DayNight.isNight = false
+    end
     
     -- Cabin Sleep fade
     if self.modal == "cabin_fade" then
@@ -70,8 +86,8 @@ function PlayState:update(dt)
     
     -- Modal updates
     if self.modal == "tackle" then
-        TackleBox.updateInput(Input)
-        if Input.isPressed("tackle") or Input.isPressed("action") or Input.isPressed("cancel") then
+        TackleBox.updateInput(Input, w, h)
+        if Input.isPressed("tackle") or Input.isPressed("cancel") then
             self.modal = nil
         end
         return
@@ -106,30 +122,35 @@ function PlayState:update(dt)
     
     -- Core simulation
     local canMove = (FishingSystem.state == "idle" or FishingSystem.state == "charging")
-    Player.update(dt, Input, canMove, minX + 15, maxX - 15)
+    Player.update(dt, Input, canMove, minX, maxX)
+    Player.y = standY -- Enforce position on the pier floor
     DayNight.update(dt)
     Water.update(dt)
-    FishingSystem.update(dt, Input, Player, DayNight, waterY)
+    Weather.update(dt, DayNight, horizonY, dockEdgeY)
+    FishingSystem.update(dt, Input, Player, DayNight, horizonY, dockEdgeY)
 end
 
 function PlayState:draw()
     local w, h = love.graphics.getDimensions()
+    local minX, maxX, standY, horizonY, dockEdgeY, lanternX, lanternY = Terrain.getDockBounds(w, h)
     
     -- 1. Sky & Celestial Layer
     SkyRenderer.draw(DayNight, w, h)
+    Weather.drawSky(w, h, DayNight)
     
-    -- 2. Terrain & Dock Layer
+    -- 2. Water Surface Layer (Mode-7 2.5D deep lake lakebed)
+    Water.draw(w, h, DayNight)
+    Weather.drawOverlays(w, h, horizonY, dockEdgeY)
+    
+    -- 3. Terrain & Foreground Pier Layer (Drawn over water under fisherman feet)
     Terrain.draw(w, h, DayNight)
     
-    -- 3. Water Surface Layer
-    Water.draw(w, h, DayNight)
-    
     -- 4. Entity & Fishing Line Layer
-    Player.draw()
-    FishingSystem.draw(Player)
+    FishingSystem.draw(Player, horizonY, dockEdgeY)
+    Player.draw(FishingSystem.state)
     
     -- 5. Dynamic Lighting & Dread Vignette Layer
-    Lighting.draw(w, h, DayNight, Player.x, Player.y)
+    Lighting.draw(w, h, DayNight, Player.x, Player.y, lanternX, lanternY)
     
     -- 6. HUD Layer
     HUD.draw(w, h, DayNight, FishingSystem)

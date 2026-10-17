@@ -27,68 +27,109 @@ function Terrain.draw(w, h, dayNight)
         love.graphics.polygon("fill", x - 8, horizonY, x + 8, horizonY, x, horizonY - th)
     end
     
-    -- Foreground Pier (Sega Bass Fishing perspective - projecting from bottom center outward)
-    local pierFarW = 140
-    local pierNearW = 340
-    local pierFarY = horizonY + 80
-    local pierNearY = h + 10
+    -- Compact Foreground Pier (Fisherman stands at the front edge, open lake water directly in front)
+    local dockEdgeY = h * 0.78
+    local dockNearY = h + 20
+    local dockFarW = w * 0.60
+    local dockNearW = w * 0.82
     
-    local px1 = (w - pierNearW) * 0.5
-    local px2 = (w + pierNearW) * 0.5
-    local fx1 = (w - pierFarW) * 0.5
-    local fx2 = (w + pierFarW) * 0.5
+    local fx1 = (w - dockFarW) * 0.5
+    local fx2 = (w + dockFarW) * 0.5
+    local px1 = (w - dockNearW) * 0.5
+    local px2 = (w + dockNearW) * 0.5
     
-    -- Pier shadow into water
-    love.graphics.setColor(0.02, 0.04, 0.06, 0.6)
-    love.graphics.polygon("fill", px1 - 25, pierNearY, px2 + 25, pierNearY, fx2 + 10, pierFarY, fx1 - 10, pierFarY)
+    -- Heavy support pilings plunging down into the water beneath the front edge
+    love.graphics.setColor(0.10, 0.07, 0.05, 1.0)
+    local pilingSpacing = (fx2 - fx1) / 5
+    for p = 0, 5 do
+        local pilX = fx1 + p * pilingSpacing - 8
+        love.graphics.rectangle("fill", pilX, dockEdgeY, 16, 45)
+        -- Water contact shadow & dark waterline scum
+        love.graphics.setColor(0.04, 0.08, 0.12, 0.8)
+        love.graphics.rectangle("fill", pilX - 2, dockEdgeY + 28, 20, 6)
+        love.graphics.setColor(0.10, 0.07, 0.05, 1.0)
+    end
     
-    -- Heavy wooden pilings underneath
-    love.graphics.setColor(0.12, 0.08, 0.06, 1.0)
-    love.graphics.rectangle("fill", fx1 + 8, pierFarY, 14, 45)
-    love.graphics.rectangle("fill", fx2 - 22, pierFarY, 14, 45)
+    -- Wooden deck surface
+    love.graphics.setColor(0.32, 0.23, 0.16, 1.0)
+    love.graphics.polygon("fill", px1, dockNearY, px2, dockNearY, fx2, dockEdgeY, fx1, dockEdgeY)
     
-    -- Wooden deck surface in perspective
-    love.graphics.setColor(0.32, 0.24, 0.16, 1.0)
-    love.graphics.polygon("fill", px1, pierNearY, px2, pierNearY, fx2, pierFarY, fx1, pierFarY)
-    
-    -- Perspective Wood Planks
-    love.graphics.setColor(0.18, 0.12, 0.08, 0.75)
+    -- Perspective deck planks running horizontally
+    love.graphics.setColor(0.18, 0.12, 0.08, 0.9)
     love.graphics.setLineWidth(2)
-    local numPlanks = 16
+    local numPlanks = 6
     for i = 1, numPlanks do
-        local frac = (i / numPlanks)^1.6 -- perspective curve
-        local y = pierFarY + (pierNearY - pierFarY) * frac
+        local frac = (i / numPlanks)^1.3
+        local y = dockEdgeY + (dockNearY - dockEdgeY) * frac
         local leftX = fx1 + (px1 - fx1) * frac
         local rightX = fx2 + (px2 - fx2) * frac
         love.graphics.line(leftX, y, rightX, y)
+        
+        -- Nail heads on planks
+        love.graphics.setColor(0.12, 0.08, 0.05, 1.0)
+        for n = 1, 4 do
+            local nx = leftX + (rightX - leftX) * (n / 5)
+            love.graphics.circle("fill", nx, y - 4, 1.5)
+        end
+        love.graphics.setColor(0.18, 0.12, 0.08, 0.9)
     end
     love.graphics.setLineWidth(1)
     
-    -- Pier edge railings / posts
+    -- Front edge heavy bumper beam (prevents boats bumping, borders the water)
     love.graphics.setColor(0.24, 0.17, 0.11, 1.0)
-    love.graphics.rectangle("fill", px1 - 6, pierNearY - 140, 16, 140)
-    love.graphics.rectangle("fill", px2 - 10, pierNearY - 140, 16, 140)
-    love.graphics.rectangle("fill", fx1 - 4, pierFarY - 50, 10, 50)
-    love.graphics.rectangle("fill", fx2 - 6, pierFarY - 50, 10, 50)
+    love.graphics.rectangle("fill", fx1 - 4, dockEdgeY - 4, dockFarW + 8, 12)
+    love.graphics.setColor(0.14, 0.09, 0.05, 1.0)
+    love.graphics.rectangle("line", fx1 - 4, dockEdgeY - 4, dockFarW + 8, 12)
     
-    -- Pier Lantern on left post
-    local lx = px1 + 2
-    local ly = pierNearY - 145
+    -- Left and Right Corner Mooring Posts (Bollards)
+    local postW, postH = 18, 48
+    love.graphics.setColor(0.18, 0.12, 0.08, 1.0)
+    love.graphics.rectangle("fill", fx1 - 10, dockEdgeY - 32, postW, postH)
+    love.graphics.rectangle("fill", fx2 - 8, dockEdgeY - 32, postW, postH)
+    -- Post caps
+    love.graphics.setColor(0.25, 0.18, 0.12, 1.0)
+    love.graphics.circle("fill", fx1 - 1, dockEdgeY - 32, 9)
+    love.graphics.circle("fill", fx2 + 1, dockEdgeY - 32, 9)
+    -- Mooring rope coils on right post
+    love.graphics.setColor(0.55, 0.48, 0.35, 1.0)
+    love.graphics.rectangle("fill", fx2 - 10, dockEdgeY - 14, postW + 4, 6)
+    
+    -- Hanging Lantern on Left Mooring Post
+    local lx = fx1 - 18
+    local ly = dockEdgeY - 26
     love.graphics.setColor(0.15, 0.15, 0.15, 1.0)
-    love.graphics.rectangle("fill", lx, ly, 8, 22)
-    love.graphics.circle("fill", lx + 4, ly, 6)
-    local lFlick = 0.8 + 0.2 * math.sin(love.timer.getTime() * 10)
-    love.graphics.setColor(1.0, 0.75, 0.3, 0.9 * lFlick)
-    love.graphics.circle("fill", lx + 4, ly + 8, 5)
+    -- Bracket arm
+    love.graphics.line(fx1 - 1, dockEdgeY - 26, lx + 6, ly)
+    love.graphics.rectangle("fill", lx, ly, 12, 22)
+    love.graphics.circle("fill", lx + 6, ly, 6)
+    -- Glowing lantern core
+    local lFlick = 0.85 + 0.15 * math.sin(love.timer.getTime() * 8)
+    love.graphics.setColor(1.0, 0.8, 0.35, 0.95 * lFlick)
+    love.graphics.circle("fill", lx + 6, ly + 10, 6)
+    
+    -- Tackle bucket on right side of dock
+    local bx = fx2 - 60
+    local by = dockEdgeY + 12
+    love.graphics.setColor(0.2, 0.25, 0.28, 1.0)
+    love.graphics.polygon("fill", bx, by + 18, bx + 18, by + 18, bx + 16, by, bx + 2, by)
+    love.graphics.setColor(0.7, 0.6, 0.3, 0.8)
+    love.graphics.circle("fill", bx + 9, by + 2, 7) -- bait inside bucket
 end
 
 function Terrain.getDockBounds(w, h)
-    local horizonY = h * 0.46
-    local pierFarY = horizonY + 80
-    local pierNearY = h - 35
-    local minX = w * 0.5 - 90
-    local maxX = w * 0.5 + 90
-    return minX, maxX, pierNearY, pierFarY
+    local horizonY = h * 0.44
+    local dockEdgeY = h * 0.78
+    local dockFarW = w * 0.60
+    local fx1 = (w - dockFarW) * 0.5
+    local fx2 = (w + dockFarW) * 0.5
+    
+    local minX = fx1 + 45
+    local maxX = fx2 - 45
+    local standY = dockEdgeY + 6 -- Fisherman's boots touch the front bumper planks
+    local lanternX = fx1 - 12
+    local lanternY = dockEdgeY - 16
+    
+    return minX, maxX, standY, horizonY, dockEdgeY, lanternX, lanternY
 end
 
 return Terrain

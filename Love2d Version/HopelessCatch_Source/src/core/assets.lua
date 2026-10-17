@@ -62,14 +62,25 @@ function Assets.loadImages()
         img:setFilter("nearest", "nearest")
         Assets.images.player_sheet = img
         
-        local w = img:getWidth() / 2
+        local w = img:getWidth() / 4
         local h = img:getHeight() / 2
         Assets.quads.player = {
-            idle    = love.graphics.newQuad(0, 0, w, h, img:getDimensions()),
-            charge  = love.graphics.newQuad(w, 0, w, h, img:getDimensions()),
-            cast    = love.graphics.newQuad(0, h, w, h, img:getDimensions()),
-            reel    = love.graphics.newQuad(w, h, w, h, img:getDimensions())
+            idle         = love.graphics.newQuad(0 * w, 0, w, h, img:getDimensions()),
+            charge       = love.graphics.newQuad(1 * w, 0, w, h, img:getDimensions()),
+            cast         = love.graphics.newQuad(2 * w, 0, w, h, img:getDimensions()),
+            reel         = love.graphics.newQuad(3 * w, 0, w, h, img:getDimensions()),
+            idle_flip    = love.graphics.newQuad(0 * w, h, w, h, img:getDimensions()),
+            charge_flip  = love.graphics.newQuad(1 * w, h, w, h, img:getDimensions()),
+            cast_flip    = love.graphics.newQuad(2 * w, h, w, h, img:getDimensions()),
+            reel_flip    = love.graphics.newQuad(3 * w, h, w, h, img:getDimensions())
         }
+    end
+
+    if love.filesystem.getInfo("assets/pier_wood.png") then
+        local img = love.graphics.newImage("assets/pier_wood.png")
+        img:setFilter("linear", "linear")
+        img:setWrap("repeat", "repeat")
+        Assets.images.pier_wood = img
     end
 
     if love.filesystem.getInfo("assets/fish/fishman_sheet.png") then
@@ -96,6 +107,25 @@ function Assets.loadImages()
 end
 
 function Assets.getImage(id)
+    if not Assets.images[id] then
+        if id == "player_sheet" and love.filesystem.getInfo("assets/player_sheet.png") then
+            local img = love.graphics.newImage("assets/player_sheet.png")
+            img:setFilter("nearest", "nearest")
+            Assets.images.player_sheet = img
+            local w = img:getWidth() / 4
+            local h = img:getHeight() / 2
+            Assets.quads.player = {
+                idle         = love.graphics.newQuad(0 * w, 0, w, h, img:getDimensions()),
+                charge       = love.graphics.newQuad(1 * w, 0, w, h, img:getDimensions()),
+                cast         = love.graphics.newQuad(2 * w, 0, w, h, img:getDimensions()),
+                reel         = love.graphics.newQuad(3 * w, 0, w, h, img:getDimensions()),
+                idle_flip    = love.graphics.newQuad(0 * w, h, w, h, img:getDimensions()),
+                charge_flip  = love.graphics.newQuad(1 * w, h, w, h, img:getDimensions()),
+                cast_flip    = love.graphics.newQuad(2 * w, h, w, h, img:getDimensions()),
+                reel_flip    = love.graphics.newQuad(3 * w, h, w, h, img:getDimensions())
+            }
+        end
+    end
     return Assets.images[id]
 end
 
@@ -160,6 +190,31 @@ function Assets.generateProceduralSounds()
     Assets.sounds.ambient_drone = love.audio.newSource(droneData, "static")
     Assets.sounds.ambient_drone:setLooping(true)
     Assets.sounds.ambient_drone:setVolume(0.4)
+    
+    -- 6. Ambient Rain Patter (looping)
+    local rainLen = math.floor(sampleRate * 2.0)
+    local rainData = love.sound.newSoundData(rainLen, sampleRate, 16, 1)
+    for i = 0, rainLen - 1 do
+        local t = i / sampleRate
+        local noise = (math.random() * 2 - 1) * 0.18
+        local drip = (math.random() < 0.005) and (math.sin(t * 1800 * math.pi * 2) * 0.4) or 0
+        rainData:setSample(i, noise + drip)
+    end
+    Assets.sounds.ambient_rain = love.audio.newSource(rainData, "static")
+    Assets.sounds.ambient_rain:setLooping(true)
+    Assets.sounds.ambient_rain:setVolume(0.35)
+    
+    -- 7. Distant Rolling Thunder
+    local thunLen = math.floor(sampleRate * 2.2)
+    local thunData = love.sound.newSoundData(thunLen, sampleRate, 16, 1)
+    for i = 0, thunLen - 1 do
+        local t = i / sampleRate
+        local rFreq = 50 + math.sin(t * 12) * 20
+        local rum = math.sin(t * rFreq * math.pi * 2) * math.exp(-t * 1.5)
+        local n = (math.random() * 2 - 1) * 0.15 * math.exp(-t * 2.0)
+        thunData:setSample(i, (rum * 0.8 + n) * 0.7)
+    end
+    Assets.sounds.thunder = love.audio.newSource(thunData, "static")
 end
 
 function Assets.play(soundName, pitchVar, vol)

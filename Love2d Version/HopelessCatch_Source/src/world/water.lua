@@ -9,7 +9,7 @@ function Water.update(dt)
 end
 
 function Water.draw(w, h, dayNight)
-    local waterY = h * 0.46
+    local waterY = h * 0.44
     local amb = dayNight.getAmbientColor()
     local t = Water.timer
     local img = Assets.getImage("water_retro")
@@ -29,10 +29,19 @@ function Water.draw(w, h, dayNight)
         local waveDistort = math.sin(t * 1.5 + depthFrac * 10) * (3 * depthFrac)
         
         -- Depth color fade: dark abyss at horizon, richer detailed water near shore
-        local depthDarken = 0.35 + 0.65 * depthFrac
-        local r = (amb[1] * 0.25 * (1 - tideRot) + 0.20 * tideRot) * depthDarken
-        local g = (amb[2] * 0.35 * (1 - tideRot) + 0.10 * tideRot) * depthDarken
-        local b = (amb[3] * 0.55 * (1 - tideRot) + 0.08 * tideRot) * depthDarken
+        local depthDarken = 0.45 + 0.55 * depthFrac
+        local r, g, b
+        if not dayNight.isNight then
+            -- Vibrant sparkling daytime lake water
+            r = (0.08 + 0.08 * depthFrac) * (1 - tideRot * 0.4) + (0.25 * tideRot)
+            g = (0.32 + 0.16 * depthFrac) * (1 - tideRot * 0.4) + (0.10 * tideRot)
+            b = (0.58 + 0.22 * depthFrac) * (1 - tideRot * 0.4) + (0.08 * tideRot)
+        else
+            -- Nighttime deep water
+            r = (amb[1] * 0.25 * (1 - tideRot) + 0.20 * tideRot) * depthDarken
+            g = (amb[2] * 0.35 * (1 - tideRot) + 0.10 * tideRot) * depthDarken
+            b = (amb[3] * 0.55 * (1 - tideRot) + 0.08 * tideRot) * depthDarken
+        end
         
         if img then
             local uOffset = (t * 0.04) + waveDistort * 0.01
@@ -47,7 +56,7 @@ function Water.draw(w, h, dayNight)
                 img:getDimensions()
             )
             
-            love.graphics.setColor(r * 1.5, g * 1.5, b * 1.5, 0.96)
+            love.graphics.setColor(r * 1.5, g * 1.5, b * 1.5, 0.98)
             love.graphics.draw(img, quad, 0, y)
         else
             love.graphics.setColor(r, g, b, 0.95)
