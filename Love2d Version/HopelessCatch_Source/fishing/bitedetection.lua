@@ -6,7 +6,7 @@ local biteTimer = 0
 local biteDelay = 0
 local hasBite = false
 local biteStartTime = 0
-local biteWindow = 5.0 -- seconds to react (increased from 3.0 for easier response)
+local biteWindow = 4.0 -- seconds to react
 local fishOnHook = false
 
 function BiteDetection:init()
@@ -14,7 +14,7 @@ function BiteDetection:init()
     biteDelay = 0
     hasBite = false
     biteStartTime = 0
-    biteWindow = 3.0
+    biteWindow = 4.0
     fishOnHook = false
 end
 
@@ -31,17 +31,23 @@ function BiteDetection:update(dt, weatherData)
     if not hasBite and not fishOnHook then
         biteTimer = biteTimer + dt
         
-        -- Weather affects bite timing
-        local weatherMultiplier = 1.0
+        -- Weather affects bite timing via structured modifiers.
+        -- weatherData can be:
+        --   • the result of Weather:getModifiers() → {biteSpeedMult, rarityBoost, isRaining, isFog}
+        --   • the raw weatherTypes entry from Weather:getWeatherData()
+        --   • nil (no weather influence)
+        local biteSpeedMult = 1.0
         if weatherData then
-            if weatherData.isRaining then
-                weatherMultiplier = 0.7 -- Fish bite more frequently in rain
-            elseif weatherData.windSpeed and weatherData.windSpeed > 15 then
-                weatherMultiplier = 1.3 -- Fish bite less in high wind
+            -- Prefer explicit modifier field
+            if weatherData.biteSpeedMult then
+                biteSpeedMult = weatherData.biteSpeedMult
+            elseif weatherData.isRaining then
+                -- Fallback: legacy rain check (fish more active in rain)
+                biteSpeedMult = 0.6
             end
         end
         
-        local adjustedDelay = biteDelay * weatherMultiplier
+        local adjustedDelay = math.max(1, biteDelay * biteSpeedMult)
         
         if biteTimer >= adjustedDelay then
             hasBite = true
@@ -91,14 +97,7 @@ function BiteDetection:handleBiteAttempt()
 end
 
 function BiteDetection:isBiting()
-    local result = hasBite and not fishOnHook
-    print("DEBUG: isBiting() called - hasBite:", hasBite, "fishOnHook:", fishOnHook, "result:", result)
-    if hasBite then
-        local currentTime = love.timer.getTime()
-        local timeRemaining = biteWindow - (currentTime - biteStartTime)
-        print("DEBUG: Bite window time remaining:", timeRemaining)
-    end
-    return result
+    return hasBite and not fishOnHook
 end
 
 function BiteDetection:isFishOnHook()
@@ -125,7 +124,6 @@ function BiteDetection:forceBite()
     hasBite = true
     biteStartTime = love.timer.getTime()
     fishOnHook = false
-    print("DEBUG: Forced bite - hasBite:", hasBite, "biteStartTime:", biteStartTime)
 end
 
 return BiteDetection

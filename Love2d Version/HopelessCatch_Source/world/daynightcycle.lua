@@ -13,14 +13,16 @@ local currentDay = 1 -- Track which day we're on
 local lastTimeOfDay = 0 -- Track previous time to detect day changes
 
 -- Time phases
+-- Night phases use very dark blue-black tints to narrow player visibility.
+-- The midnight window (0.0-0.2 and 0.9-1.0) is the darkest for maximum dread.
 local phases = {
-    {name = "Night", start = 0, r = 0.1, g = 0.1, b = 0.3},
+    {name = "Night", start = 0, r = 0.04, g = 0.04, b = 0.12},   -- deep midnight blue-black
     {name = "Dawn", start = 0.2, r = 0.8, g = 0.4, b = 0.2},
     {name = "Morning", start = 0.3, r = 1, g = 1, b = 0.9},
     {name = "Day", start = 0.4, r = 1, g = 1, b = 1},
     {name = "Evening", start = 0.7, r = 1, g = 0.7, b = 0.4},
-    {name = "Dusk", start = 0.8, r = 0.4, g = 0.2, b = 0.6},
-    {name = "Night", start = 0.9, r = 0.1, g = 0.1, b = 0.3}
+    {name = "Dusk", start = 0.8, r = 0.35, g = 0.15, b = 0.5},   -- darker dusk transition
+    {name = "Night", start = 0.9, r = 0.04, g = 0.04, b = 0.12}  -- deep midnight blue-black
 }
 
 function DayNightCycle:init()
@@ -83,11 +85,14 @@ function DayNightCycle:update(dt)
         nightTransitionCooldown = nightTransitionCooldown - dt
     end
     
-    -- Trigger night transition events instantly for fluid transitions
-    if not wasNight and isNight then
-        self:onNightFall()
-    elseif wasNight and not isNight then
-        self:onDayBreak()
+    -- Trigger night transition events exactly once at the moment of change.
+    -- (wasNight is captured before isNight updates, so this fires only on the frame it flips)
+    if wasNight ~= isNight then
+        if not wasNight and isNight then
+            self:onNightFall()
+        elseif wasNight and not isNight then
+            self:onDayBreak()
+        end
     end
 end
 
@@ -133,6 +138,73 @@ end
 
 function DayNightCycle:endLighting()
     love.graphics.pop()
+end
+
+--- Draw a radial visibility vignette that narrows the player's visible area
+-- during dark hours. The center (dock/player area) stays relatively clear while
+-- the edges fade to near-black, creating a "spotlight in the void" effect.
+-- Call AFTER endLighting() and BEFORE UI rendering for best results.
+function DayNightCycle:drawVisibilityVignette()
+    -- Only apply during night hours (timeOfDay < 0.3 or > 0.8)
+    local isDark = timeOfDay < 0.25 or timeOfDay > 0.85
+    if not isDark then return end
+    
+    -- Calculate darkness intensity: peaks at midnight (t=0 or t=1), fades toward dawn/dusk
+    local darkness = 0
+    if timeOfDay < 0.25 then
+        -- Approaching dawn: fade out from full dark at midnight to clear at 0.25
+        darkness = 1 - (timeOfDay / 0.25)
+    elseif timeOfDay > 0.85 then
+        -- Past dusk: ramp up from clear at 0.85 to full dark at midnight
+        darkness = ((timeOfDay - 0.85) / 0.15)
+    end
+    
+    if darkness <= 0 then return end
+    
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    local cx, cy = w * 0.5, h * 0.45  -- Center on dock area (slightly above middle)
+    
+    -- Draw concentric darkening rings from edges inward
+    -- Outer ring: darkest
+    local maxRadius = math.sqrt(w * w + h * h) / 2
+    local innerRadius = maxRadius * 0.35  -- Clear zone radius (dock area stays visible)
+    
+    -- Use multiple semi-transparent rectangles for a soft vignette approximation
+    -- (Love2D doesn't have native radial gradients without shaders)
+    local steps = 8
+    for i = steps, 1, -1 do
+        local t = i / steps
+        local radius = innerRadius + (maxRadius - innerRadius) * t
+        local alpha = darkness * 0.75 * (t ^ 1.5)  -- Ease-in darkening toward edges
+        
+        -- Draw a dark border frame at this radius using rectangles
+        local halfW = radius * 0.85
+        local halfH = radius * 0.65
+        love.graphics.setColor(0.02, 0.02, 0.08, alpha)
+        
+        -- Top strip
+        if cy - halfH < 0 then
+            love.graphics.rectangle("fill", 0, 0, w, math.min(halfH, h))
+        end
+        -- Bottom strip
+        if cy + halfH > h then
+            love.graphics.rectangle("fill", 0, math.max(0, h - halfH), w, math.min(halfH, h))
+        end
+        -- Left strip
+        if cx - halfW < 0 then
+            love.graphics.rectangle("fill", 0, 0, math.min(halfW, w), h)
+        end
+        -- Right strip
+        if cx + halfW > w then
+            love.graphics.rectangle("fill", math.max(0, w - halfW), 0, math.min(halfW, w), h)
+        end
+    end
+    
+    -- Subtle blue-black tint over everything for cohesion
+    love.graphics.setColor(0.02, 0.03, 0.1, darkness * 0.25)
+    love.graphics.rectangle("fill", 0, 0, w, h)
+    
+    love.graphics.setColor(1, 1, 1, 1) -- Reset
 end
 
 function DayNightCycle:drawTimeIndicator()

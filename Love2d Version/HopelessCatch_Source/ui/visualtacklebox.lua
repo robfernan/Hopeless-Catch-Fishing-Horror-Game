@@ -10,6 +10,10 @@ local selectedSlot = 1
 local animationTimer = 0
 local tackleboxAlpha = 0
 
+-- Cached fonts (created once)
+local titleFont = nil
+local smallFont = nil
+
 -- Layout configuration
 local layout = {
     slotsPerRow = 4,
@@ -77,6 +81,7 @@ end
 
 function VisualTacklebox:draw(baitInventory)
     if tackleboxAlpha <= 0 then return end
+    baitInventory = baitInventory or {}
     -- Minimal, presentable tackle box with 4 baits and their images
     local screenWidth, screenHeight = love.graphics.getWidth(), love.graphics.getHeight()
     local boxWidth, boxHeight = 420, 200
@@ -91,10 +96,12 @@ function VisualTacklebox:draw(baitInventory)
     love.graphics.rectangle("line", boxX, boxY, boxWidth, boxHeight, 16, 16)
 
     -- Title inside the box
+    if not titleFont then titleFont = love.graphics.newFont(22) end
+    if not smallFont then smallFont = love.graphics.newFont(14) end
     love.graphics.setColor(0.2, 0.1, 0.05, tackleboxAlpha)
-    love.graphics.setFont(love.graphics.newFont(22))
+    love.graphics.setFont(titleFont)
     love.graphics.printf("Tackle Box", boxX, boxY + 10, boxWidth, "center")
-    love.graphics.setFont(love.graphics.newFont(14))
+    love.graphics.setFont(smallFont)
 
     -- Slot layout
     local slotSize = 80
@@ -104,6 +111,7 @@ function VisualTacklebox:draw(baitInventory)
     for i = 1, slotsPerRow do
         local slotX = boxX + slotSpacing + (i - 1) * (slotSize + slotSpacing)
         local bait = baitInventory[i]
+        if type(bait) ~= "table" then bait = nil end
         -- Highlight selected slot
         if i == selectedSlot then
             love.graphics.setColor(0.95, 0.9, 0.6, tackleboxAlpha)
@@ -116,7 +124,8 @@ function VisualTacklebox:draw(baitInventory)
         love.graphics.rectangle("line", slotX, slotY, slotSize, slotSize, 10, 10)
         if bait then
             -- Draw bait image (or placeholder) to fill the slot box, perfectly centered
-            local img = Assets:getImage("bait_" .. bait.name:lower())
+            local baitName = type(bait.name) == "string" and bait.name or ""
+            local img = baitName ~= "" and Assets:getImage("bait_" .. baitName:lower()) or nil
             if img then
                 local imgW, imgH = img:getWidth(), img:getHeight()
                 local scale = math.min(slotSize / imgW, slotSize / imgH)
@@ -126,7 +135,9 @@ function VisualTacklebox:draw(baitInventory)
                 love.graphics.draw(img, drawX, drawY, 0, scale, scale)
             end
             love.graphics.setColor(0.2, 0.1, 0.05, tackleboxAlpha)
-            love.graphics.printf(bait.name, slotX, slotY + slotSize + 6, slotSize, "center")
+            if baitName ~= "" then
+                love.graphics.printf(baitName, slotX, slotY + slotSize + 6, slotSize, "center")
+            end
             -- No bait count displayed; bait is unlimited
         end
     end
@@ -134,7 +145,7 @@ function VisualTacklebox:draw(baitInventory)
     -- Controls text centered below bait names
     local controlsY = boxY + boxHeight - 32
     love.graphics.setColor(0.2, 0.1, 0.05, tackleboxAlpha)
-    love.graphics.setFont(love.graphics.newFont(14))
+    love.graphics.setFont(smallFont)
     love.graphics.printf("Arrows: Move | SPACE: Select | B: Close/Open Tacklebox", boxX, controlsY, boxWidth, "center")
 end
 

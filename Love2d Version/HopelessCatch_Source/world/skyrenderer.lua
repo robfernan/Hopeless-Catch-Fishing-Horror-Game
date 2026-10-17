@@ -1,23 +1,45 @@
 -- world/skyrenderer.lua - Sky gradient, sun, moon, stars, and clouds
 local SkyRenderer = {}
 
+-- Cache the sky mesh to avoid creating it every frame
+local skyMesh = nil
+local lastSkyColors = {top = nil, horizon = nil}
+
 function SkyRenderer:drawSky(timeOfDay)
     local width, height = love.graphics.getWidth(), love.graphics.getHeight()
     
     -- Dynamic sky color based on time
     local skyColors = self:getSkyColors(timeOfDay)
     
-    -- Draw gradient sky
-    local mesh = love.graphics.newMesh(4, "strip", "static")
-    mesh:setVertices({
-        {0, 0, 0, 0, skyColors.top.r, skyColors.top.g, skyColors.top.b, skyColors.top.a},
-        {width, 0, 1, 0, skyColors.top.r, skyColors.top.g, skyColors.top.b, skyColors.top.a},
-        {0, height * 0.7, 0, 1, skyColors.horizon.r, skyColors.horizon.g, skyColors.horizon.b, skyColors.horizon.a},
-        {width, height * 0.7, 1, 1, skyColors.horizon.r, skyColors.horizon.g, skyColors.horizon.b, skyColors.horizon.a}
-    })
+    -- Draw gradient sky using cached mesh (update vertices only when colors change)
+    if not skyMesh then
+        skyMesh = love.graphics.newMesh(4, "strip", "dynamic")
+    end
+    
+    local topChanged = not lastSkyColors.top or
+        lastSkyColors.top.r ~= skyColors.top.r or
+        lastSkyColors.top.g ~= skyColors.top.g or
+        lastSkyColors.top.b ~= skyColors.top.b or
+        lastSkyColors.horizon == nil or
+        lastSkyColors.horizon.r ~= skyColors.horizon.r or
+        lastSkyColors.horizon.g ~= skyColors.horizon.g or
+        lastSkyColors.horizon.b ~= skyColors.horizon.b
+    
+    if topChanged then
+        skyMesh:setVertices({
+            {0, 0, 0, 0, skyColors.top.r, skyColors.top.g, skyColors.top.b, skyColors.top.a},
+            {width, 0, 1, 0, skyColors.top.r, skyColors.top.g, skyColors.top.b, skyColors.top.a},
+            {0, height * 0.7, 0, 1, skyColors.horizon.r, skyColors.horizon.g, skyColors.horizon.b, skyColors.horizon.a},
+            {width, height * 0.7, 1, 1, skyColors.horizon.r, skyColors.horizon.g, skyColors.horizon.b, skyColors.horizon.a}
+        })
+        lastSkyColors = {
+            top = {r = skyColors.top.r, g = skyColors.top.g, b = skyColors.top.b},
+            horizon = {r = skyColors.horizon.r, g = skyColors.horizon.g, b = skyColors.horizon.b}
+        }
+    end
     
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(mesh)
+    love.graphics.draw(skyMesh)
 end
 
 function SkyRenderer:getSkyColors(timeOfDay)

@@ -6,6 +6,7 @@ local Assets = {}
 -- Asset storage
 local images = {}
 local sounds = {}
+local placeholders = {} -- track which images are just white-box placeholders
 
 -- Asset paths (easy to modify when you add your art)
 local assetPaths = {
@@ -28,6 +29,14 @@ local assetPaths = {
 
     -- Characters & Environment
     player_character = "assets/player.png",
+
+    -- Ambient audio (looping)
+    sound_ambient_lake = "assets/audio/ambient_lake.ogg",
+
+    -- Horror audio stems (low-frequency dread, stingers, effects)
+    sound_horror_hum = "assets/audio/horror_low_hum.ogg",       -- low drone during flicker/stinger events
+    sound_vinyl_crackle = "assets/audio/vinyl_crackle.ogg",     -- analog noise texture for horror moments
+    sound_fishman_stinger = "assets/audio/fishman_stinger.ogg", -- sharp dissonant hit on Fishman reveal
 }
 
 -- Fallback colors for when sprites don't exist yet
@@ -47,9 +56,16 @@ function Assets:load()
     -- Try to load all assets, use fallbacks if files don't exist
     for name, path in pairs(assetPaths) do
         if name:sub(1, 5) == "sound" then
-            -- Audio loading (for later)
+            -- Audio loading
             if love.filesystem.getInfo(path) then
-                sounds[name] = love.audio.newSource(path, "static")
+                local src = love.audio.newSource(path, "static")
+                -- Ambient/looping tracks should loop; one-shots stay non-looping
+                if name:find("ambient") then
+                    src:setLooping(true)
+                end
+                sounds[name] = src
+            else
+                print("○ Audio file not found (will be silent): " .. path)
             end
         else
             -- Image loading
@@ -66,6 +82,7 @@ function Assets:load()
                 love.graphics.rectangle("line", 0, 0, 64, 64)
                 love.graphics.setCanvas()
                 images[name] = canvas
+                placeholders[name] = true
                 print("○ Using placeholder for: " .. name .. " (add " .. path .. ")")
             end
         end
@@ -83,7 +100,64 @@ function Assets:getSound(name)
     return sounds[name]
 end
 
+-- Start the ambient lake/water loop (call once at game startup)
+function Assets:startAmbientAudio()
+    local src = self:getSound("sound_ambient_lake")
+    if src then
+        if not src:isPlaying() then
+            src:play()
+        end
+        print("🔊 Ambient lake audio started (looping)")
+    else
+        print("○ No ambient audio file found - running silent")
+    end
+end
+
+-- Stop the ambient loop (e.g., when entering cabin or quitting)
+function Assets:stopAmbientAudio()
+    local src = self:getSound("sound_ambient_lake")
+    if src and src:isPlaying() then
+        src:stop()
+    end
+end
+
+--- Duck (lower) the ambient lake volume. Call when a horror event begins.
+-- @param level number 0..1 target volume (e.g., 0.3 = 70% reduction)
+function Assets:duckAmbientAudio(level)
+    local src = self:getSound("sound_ambient_lake")
+    if src then
+        src:setVolume(math.max(0, math.min(1, level or 0.3)))
+    end
+end
+
+--- Restore ambient lake volume to full. Call when a horror event ends.
+function Assets:restoreAmbientAudio()
+    local src = self:getSound("sound_ambient_lake")
+    if src then
+        src:setVolume(1.0)
+    end
+end
+
+--- Play a one-shot horror sound (hum, crackle, stinger). Non-fatal if missing.
+-- @param name string key in assetPaths (e.g., "sound_horror_hum")
+-- @param volume number optional 0..1 override
+function Assets:playHorrorSound(name, volume)
+    local src = self:getSound(name)
+    if src then
+        if volume then src:setVolume(volume) end
+        src:play()
+    else
+        print("○ Horror sound not found (silent): " .. name)
+    end
+end
+
+--- Check if a real (non-placeholder) image is loaded.
 function Assets:hasImage(name)
+    return images[name] ~= nil and placeholders[name] == nil
+end
+
+--- Check if an image exists at all (including placeholders).
+function Assets:hasAnyImage(name)
     return images[name] ~= nil
 end
 

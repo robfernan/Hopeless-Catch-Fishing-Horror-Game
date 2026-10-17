@@ -47,8 +47,9 @@ function Player:update(dt)
     local newX = x + dx * speed * dt
     local newY = y + dy * speed * dt
     
-    -- Get water level from world
+    -- Get water level from world (guard against uninitialized world)
     local World = require("world.world")
+    if not World or not World.getWaterY then return end
     local waterY = World:getWaterY()
     local grassY = World:getGrassY()
     
@@ -89,9 +90,8 @@ function Player:update(dt)
     x = newX
     y = newY
     
-    -- Keep player on screen horizontally
+    -- Keep player on screen horizontally (vertical is already constrained by ground/dock)
     x = math.max(width/2, math.min(love.graphics.getWidth() - width/2, x))
-    y = math.max(height/2, math.min(love.graphics.getHeight() - height/2, y))
 end
 
 function Player:draw()

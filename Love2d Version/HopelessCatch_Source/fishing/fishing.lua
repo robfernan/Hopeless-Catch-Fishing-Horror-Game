@@ -20,7 +20,8 @@ end
 
 -- Draw all fishing components
 function Fishing:draw()
-    if FishingController:getState() ~= "idle" then
+    local currentState = FishingController:getState()
+    if currentState ~= "waiting" and currentState ~= "idle" then
         local playerX, playerY = require("player"):getPosition()
         local playerWidth, playerHeight = require("player"):getDimensions()
         
@@ -59,7 +60,6 @@ function Fishing:draw()
         
         -- Reset line width and draw the casting system
         love.graphics.setLineWidth(1)
-        local isBiting = self:isBiting()
         CastingSystem:draw(rodEndX, rodEndY, FishingController:getState(), isBiting)
     end
 end
@@ -156,6 +156,10 @@ end
 
 function Fishing:getBiteDelay()
     return FishingController:getBiteDelay()
+end
+
+function Fishing:getStatistics()
+    return FishingController:getStatistics()
 end
 
 function Fishing:keypressed(key)

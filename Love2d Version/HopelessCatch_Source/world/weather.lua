@@ -8,28 +8,48 @@ local weatherDuration = 0
 
 local windStrength = 0
 local windDirection = 0
+local rainParticles = {}
+local lightningTimer = 0
+local lightningFlash = 0
 
 -- Weather types and their effects
+-- `biteSpeedMult`   : multiplier applied to bite delay (lower = faster bites)
+-- `rarityBoost`     : additive bonus to rare/horror fish weight in selection
 local weatherTypes = {
     clear = {
         name = "Clear",
         fishingMultiplier = 1.0,
         visibilityRange = 1.0,
         castingAccuracy = 1.0,
-        duration = {60, 120} -- 1-2 minutes
+        biteSpeedMult = 1.0,     -- normal bite timing
+        rarityBoost = 0.0,       -- no extra rare weight
+        duration = {60, 120}
     },
     rain = {
         name = "Rain",
-        fishingMultiplier = 0.7, -- Harder to see bites
+        fishingMultiplier = 0.7,
         visibilityRange = 0.6,
         castingAccuracy = 0.8,
+        biteSpeedMult = 0.6,     -- fish are more active in rain → faster bites
+        rarityBoost = 0.1,       -- slight increase in unusual catches
         duration = {45, 90}
+    },
+    fog = {
+        name = "Fog",
+        fishingMultiplier = 0.8,
+        visibilityRange = 0.3,
+        castingAccuracy = 0.7,
+        biteSpeedMult = 1.2,     -- bites are slower (harder to see)
+        rarityBoost = 0.4,       -- fog attracts strange, rare creatures
+        duration = {60, 150}
     },
     storm = {
         name = "Storm",
-        fishingMultiplier = 0.3, -- Nearly impossible
+        fishingMultiplier = 0.3,
         visibilityRange = 0.4,
         castingAccuracy = 0.5,
+        biteSpeedMult = 0.8,     -- moderate speed (chaotic water)
+        rarityBoost = 0.25,      -- storms stir up deep things
         duration = {20, 40}
     },
 }
@@ -85,15 +105,15 @@ function Weather:changeWeather()
         return
     end
 
-    local FishingSystem = require("fishing.fishing")
     local DayNightCycle = require("world.daynightcycle")
     local isNight = DayNightCycle:isNightTime()
 
     -- Weather probability based on horror level and time
     local weatherChances = {
-        clear = 0.4,
+        clear = 0.35,
         rain = 0.2,
-        storm = (isNight) and 0.2 or 0.05,
+        fog = (isNight) and 0.15 or 0.08,  -- fog is more common at night
+        storm = (isNight) and 0.2 or 0.07,
     }
 
     -- Select new weather
@@ -109,6 +129,10 @@ function Weather:changeWeather()
     end
 
     local weatherData = weatherTypes[currentWeather]
+    if not weatherData then
+        currentWeather = "clear"
+        weatherData = weatherTypes.clear
+    end
     weatherDuration = math.random(weatherData.duration[1], weatherData.duration[2])
     weatherTimer = 0
 
@@ -206,6 +230,82 @@ function Weather:draw()
     if currentWeather == "storm" and lightningFlash > 0 then
         self:drawLightning()
     end
+    
+    -- Fog vignette overlay (always active during fog, intensified at night)
+    if currentWeather == "fog" then
+        self:drawFogVignette()
+    end
+end
+
+--- Draw a subtle fog vignette that creeps in from the screen edges.
+-- During daytime this is a light grey haze; at night it becomes a cold
+-- blue-grey mist that reduces peripheral visibility and adds dread.
+function Weather:drawFogVignette()
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    
+    -- Check if it's night for the darker fog variant
+    local DayNightCycle = require("world.daynightcycle")
+    local isNight = false
+    if type(DayNightCycle.isNightTime) == "function" then
+        isNight = DayNightCycle:isNightTime()
+    end
+    
+    -- Base alpha: subtle during day, more oppressive at night
+    local baseAlpha = isNight and 0.35 or 0.2
+    
+    -- Slow pulsing for organic feel (breathing fog)
+    local pulse = 0.8 + 0.2 * math.sin(love.timer.getTime() * 0.5)
+    local alpha = baseAlpha * pulse
+    
+    if isNight then
+        -- Night fog: cold blue-grey, heavier at edges
+        love.graphics.setColor(0.15, 0.18, 0.28, alpha)
+    else
+        -- Day fog: neutral grey, lighter
+        love.graphics.setColor(0.6, 0.65, 0.7, alpha * 0.6)
+    end
+    
+    -- Draw layered edge strips for a soft vignette effect
+    local stripWidth = w * 0.18
+    local stripHeight = h * 0.15
+    
+    -- Top
+    love.graphics.rectangle("fill", 0, 0, w, stripHeight)
+    -- Bottom
+    love.graphics.rectangle("fill", 0, h - stripHeight, w, stripHeight)
+    -- Left
+    love.graphics.rectangle("fill", 0, 0, stripWidth, h)
+    -- Right
+    love.graphics.rectangle("fill", w - stripWidth, 0, stripWidth, h)
+    
+    -- Inner layer (slightly less opaque for depth)
+    local innerAlpha = alpha * 0.5
+    if isNight then
+        love.graphics.setColor(0.12, 0.14, 0.22, innerAlpha)
+    else
+        love.graphics.setColor(0.55, 0.6, 0.65, innerAlpha)
+    end
+    
+    local innerW = w * 0.3
+    local innerH = h * 0.25
+    love.graphics.rectangle("fill", 0, 0, w, innerH)
+    love.graphics.rectangle("fill", 0, h - innerH, w, innerH)
+    love.graphics.rectangle("fill", 0, 0, innerW, h)
+    love.graphics.rectangle("fill", w - innerW, 0, innerW, h)
+    
+    -- Subtle horizontal mist bands drifting across the screen
+    local t = love.timer.getTime()
+    if isNight then
+        love.graphics.setColor(0.2, 0.22, 0.35, alpha * 0.3)
+    else
+        love.graphics.setColor(0.7, 0.72, 0.78, alpha * 0.2)
+    end
+    for i = 1, 3 do
+        local bandY = (h * 0.3) + (i * h * 0.2) + math.sin(t * 0.3 + i * 2) * 15
+        love.graphics.rectangle("fill", 0, bandY, w, 8 + i * 4)
+    end
+    
+    love.graphics.setColor(1, 1, 1, 1) -- Reset
 end
 
 function Weather:drawRain()
@@ -235,13 +335,36 @@ function Weather:drawLightning()
     end
 end
 
+--- Get the active weather modifiers as a flat table.
+-- Returns fields that downstream systems (bitedetection, fishdata) can use:
+--   biteSpeedMult  : multiply bite delay by this (lower = faster bites)
+--   rarityBoost    : additive bonus to rare/horror fish selection weight
+--   isRaining      : boolean convenience flag
+--   isFog          : boolean convenience flag
+function Weather:getModifiers()
+    local data = weatherTypes[currentWeather]
+    return {
+        biteSpeedMult = data.biteSpeedMult or 1.0,
+        rarityBoost = data.rarityBoost or 0.0,
+        isRaining = (currentWeather == "rain" or currentWeather == "storm"),
+        isFog = (currentWeather == "fog"),
+    }
+end
+
 -- Getters for other systems
 function Weather:getCurrentWeather()
     return currentWeather
 end
 
 function Weather:getWeatherData()
-    return weatherTypes[currentWeather]
+    local data = weatherTypes[currentWeather]
+    -- Return a copy with modifier fields so consumers can check .isRaining / .biteSpeedMult
+    -- without mutating the shared table.
+    local result = {}
+    for k, v in pairs(data) do result[k] = v end
+    result.isRaining = (currentWeather == "rain" or currentWeather == "storm")
+    result.isFog = (currentWeather == "fog")
+    return result
 end
 
 function Weather:getFishingMultiplier()

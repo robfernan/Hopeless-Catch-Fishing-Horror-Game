@@ -264,6 +264,11 @@ function CastingSystem:draw(rodX, rodY, fishingState, isBiting)
     love.graphics.setColor(1, 1, 1, 1)
 end
 
+--- Check if the power meter is currently decreasing (casting down phase).
+function CastingSystem:isCastingDown()
+    return not castingUp
+end
+
 -- Getters
 function CastingSystem:getCastPower()
     return castPower

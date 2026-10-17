@@ -30,6 +30,14 @@ function FishingController:update(dt, weatherData, dayNightCycle)
     -- Update all systems
     CastingSystem:update(dt, weatherData, fishingState)
     
+    -- Auto-finalize cast when power oscillation completes a full cycle (reaches 0 going down)
+    if fishingState == "casting" then
+        local power = CastingSystem:getCastPower()
+        if power <= 0.01 and CastingSystem.isCastingDown and CastingSystem:isCastingDown() then
+            self:finalizeCast(dayNightCycle)
+        end
+    end
+    
     if fishingState == "bobbing" then
         local biteResult = BiteDetection:update(dt, weatherData)
         if biteResult == "bite_missed" then
@@ -38,14 +46,11 @@ function FishingController:update(dt, weatherData, dayNightCycle)
         end
     elseif fishingState == "struggling" then
         local struggleResult = ReelingSystem:updateStruggling(dt)
-        print("DEBUG: updateStruggling returned:", struggleResult)
         if struggleResult == "line_break" then
-            print("DEBUG: Line broke during struggling - player was too impatient!")
             self:handleLineBreak()
         elseif struggleResult == "start_reeling" then
-            print("DEBUG: Fish is tired! Transitioning to reeling phase!")
             fishingState = "reeling"
-            print("Now reel in the fish! Press SPACE to reel, but watch the line stress!")
+            print("🎣 Fish is tired! Now reel it in - press SPACE to reel!")
         end
     elseif fishingState == "reeling" then
         local reelingResult = ReelingSystem:updateReeling(dt, currentCatch)
@@ -55,26 +60,29 @@ function FishingController:update(dt, weatherData, dayNightCycle)
             self:handleSuccessfulCatch()
         elseif reelingResult == "fish_escaped" then
             self:handleFishEscape()
+        elseif reelingResult == "continue_reeling_thrash" then
+            -- Thrash spike just triggered: quick screen shake for visual impact
+            if _G.addScreenShake then
+                local _, intensity = ReelingSystem:getThrashState()
+                local shakeMag = 4 + (intensity or 0.3) * 10  -- scale with thrash power
+                _G.addScreenShake(0.25, shakeMag)
+            end
         end
     end
 end
 
 function FishingController:startCasting()
-    print("DEBUG: startCasting called, fishingState =", fishingState)
     if fishingState == "waiting" then
         local currentBait = BaitSystem:getCurrentBait()
-        print("DEBUG: currentBait =", currentBait and currentBait.name or "nil")
         
         -- Auto-select first bait if none selected
         if not currentBait then
-            print("DEBUG: No bait selected, auto-selecting worms")
             BaitSystem:selectBait(1)
             currentBait = BaitSystem:getCurrentBait()
         end
         
         if currentBait then
             local baitCount = BaitSystem:getBaitCount(currentBait.type)
-            print("DEBUG: baitCount =", baitCount)
             if baitCount > 0 then
                 fishingState = "casting"
                 CastingSystem:startCasting()
@@ -103,7 +111,7 @@ function FishingController:finalizeCast(dayNightCycle)
             -- Use bait
             BaitSystem:useBait(currentBait)
             StatisticsSystem:recordCast()
-            StatisticsSystem:recordBaitUsed(currentBait)
+            StatisticsSystem:recordBaitUsed(currentBait.type)
             
             -- Determine what fish might bite based on time and bait
             currentCatch = FishData:selectFish(dayNightCycle, currentBait)
@@ -122,53 +130,65 @@ function FishingController:finalizeCast(dayNightCycle)
 end
 
 function FishingController:toggleCasting()
-    print("DEBUG: FishingController:toggleCasting called, fishingState =", fishingState)
     if fishingState == "waiting" then
-        print("DEBUG: Calling startCasting()")
         return self:startCasting()
     elseif fishingState == "casting" then
-        -- Get day/night cycle for finalizeCast
         local DayNightCycle = require("world.daynightcycle")
-        print("DEBUG: Calling finalizeCast()")
         return self:finalizeCast(DayNightCycle)
     else
-        print("DEBUG: Cannot toggle casting in state:", fishingState)
         return false
     end
 end
 
 function FishingController:attemptHookSet()
-    print("DEBUG: attemptHookSet called, fishingState =", fishingState)
-    print("DEBUG: currentCatch =", currentCatch and currentCatch.name or "nil")
     if fishingState == "bobbing" then
         local hookResult, reactionTime = BiteDetection:handleBiteAttempt()
-        print("DEBUG: BiteDetection:handleBiteAttempt returned:", hookResult, reactionTime)
         if hookResult == "fish_hooked" then
             fishingState = "struggling"
             fightStartTime = love.timer.getTime()
             StatisticsSystem:recordReactionTime(reactionTime)
             ReelingSystem:startStruggling(currentCatch)
-            print("✅ Fish hooked successfully! It's struggling!")
-            print("DEBUG: State changed to 'struggling', waiting for fish to tire...")
+            print("✅ Fish hooked! Wait for it to tire, then reel!")
             return true
         elseif hookResult == "bite_missed" then
-            print("❌ Bite missed! Resetting to waiting...")
             self:resetToWaiting()
             StatisticsSystem:recordBiteMissed()
-        elseif hookResult == "no_bite" then
-            print("❌ No active bite to respond to!")
         end
-    else
-        print("DEBUG: Cannot attempt hook set in state:", fishingState)
     end
     return false
 end
 
 function FishingController:handleLineBreak()
+    local fishName = (currentCatch and currentCatch.name) or "fish"
     print("💔 Your line broke! The fish was too strong.")
-    print("🐟 The " .. (currentCatch and currentCatch.name or "fish") .. " got away!")
+    print("🐟 The " .. fishName .. " got away!")
+    
+    -- Line snap visual/audio effect
+    self:playLineSnapEffect()
+    
     StatisticsSystem:recordLineBreak()
     self:resetToWaiting()
+end
+
+--- Play the line-snap feedback: screen shake + optional sound.
+-- Called when tension exceeds 100% and the line breaks.
+function FishingController:playLineSnapEffect()
+    -- Screen shake (uses the global addScreenShake defined in main.lua)
+    if _G.addScreenShake then
+        _G.addScreenShake(0.4, 8)  -- 0.4s duration, intensity 8
+    end
+    
+    -- Play snap sound if available (non-fatal if missing)
+    local Assets = require("assets")
+    local snapSound = nil
+    if type(Assets.getSound) == "function" then
+        snapSound = Assets:getSound("sound_line_snap")
+    end
+    if snapSound then
+        snapSound:play()
+    else
+        print("🎵 [line snap sound - add assets/audio/line_snap.ogg for audio feedback]")
+    end
 end
 
 function FishingController:handleSuccessfulCatch()
@@ -186,9 +206,11 @@ function FishingController:handleSuccessfulCatch()
         print("  Rarity: " .. currentCatch.rarity)
     end
     
-    -- Trigger the catch display UI
+    -- Trigger the catch display UI (ImGui and legacy)
     local CatchDisplay = require("ui.catchdisplay")
     CatchDisplay:showCatch(currentCatch)
+    local CatchDisplayUI = require("ui.imgui.catchdisplay")
+    CatchDisplayUI:show(currentCatch)
     
     -- Record catch in journal
     local Journal = require("ui.journal")
@@ -228,31 +250,42 @@ function FishingController:manualReel()
 end
 
 function FishingController:forceBite()
-    print("DEBUG: ForceBite called")
     if fishingState == "bobbing" then
         BiteDetection:forceBite()
-        print("DEBUG: Forced bite, state is still:", fishingState)
     end
 end
 
 -- Tackle box controls
 function FishingController:openTackleBox()
-    return BaitSystem:openTackleBox()
+    return BaitSystem:toggleTacklebox()
 end
 
 function FishingController:closeTackleBox()
-    BaitSystem:closeTackleBox()
+    if BaitSystem:isTackleboxOpen() then
+        BaitSystem:toggleTacklebox()
+    end
 end
 
 function FishingController:navigateTackleBox(direction)
-    BaitSystem:navigate(direction)
+    if direction == "up" then
+        BaitSystem:navigateTackleboxUp()
+    elseif direction == "down" then
+        BaitSystem:navigateTackleboxDown()
+    end
 end
 
 function FishingController:selectBaitFromTackleBox()
-    BaitSystem:selectCurrentBait()
+    BaitSystem:selectTackleboxBait()
 end
 
 -- Getters for UI and game state
+function FishingController:setState(state)
+    local validStates = {waiting = true, casting = true, bobbing = true, struggling = true, reeling = true}
+    if validStates[state] then
+        fishingState = state
+    end
+end
+
 function FishingController:getState()
     return fishingState
 end
@@ -262,15 +295,27 @@ function FishingController:getCurrentCatch()
 end
 
 function FishingController:getCastingPower()
-    return CastingSystem:getCastingPower()
+    return CastingSystem:getCastPower()
 end
 
 function FishingController:isCasting()
-    return CastingSystem:isCasting()
+    return fishingState == "casting"
 end
 
 function FishingController:getBobberPosition()
     return CastingSystem:getBobberPosition()
+end
+
+function FishingController:getTension()
+    return ReelingSystem:getTension()
+end
+
+function FishingController:getTensionColor()
+    return ReelingSystem:getTensionColor()
+end
+
+function FishingController:isTensionCritical()
+    return ReelingSystem:isTensionCritical()
 end
 
 function FishingController:getLineStress()
@@ -322,27 +367,21 @@ function FishingController:getCastPower()
 end
 
 function FishingController:getTotalCatches()
-    return StatisticsSystem:getTotalCatches()
+    local stats = StatisticsSystem:getStatistics()
+    return stats.totalCatches or 0
 end
 
 function FishingController:getNightsCaught()
-    return StatisticsSystem:getNightsCaught()
-end
-
-function FishingController:getLineStress()
-    return ReelingSystem:getLineStress()
-end
-
-function FishingController:getMaxLineStress()
-    return ReelingSystem:getMaxLineStress()
-end
-
-function FishingController:isFishPulling()
-    return ReelingSystem:isFishPulling()
-end
-
-function FishingController:getReelProgress()
-    return ReelingSystem:getReelProgress()
+    -- Count night fish caught from statistics
+    local stats = StatisticsSystem:getStatistics()
+    local count = 0
+    if stats.fishCaughtByType then
+        count = (stats.fishCaughtByType.pale_crawler or 0) +
+                (stats.fishCaughtByType.bleeding_carp or 0) +
+                (stats.fishCaughtByType.whispering_eel or 0) +
+                (stats.fishCaughtByType.fishman or 0)
+    end
+    return count
 end
 
 function FishingController:getMaxReelProgress()

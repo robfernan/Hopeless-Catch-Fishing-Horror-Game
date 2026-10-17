@@ -10,9 +10,22 @@ local isOpen = false
 local currentDay = 1
 local scrollOffset = 0
 
+-- Secret / horror journal entries (unlocked by events, not catches)
+local secretEntries = {}   -- { [day] = {"It saw you too.", ...} }
+local secretsUnlocked = {} -- track which secrets have been revealed
+
+-- Cached fonts (created once, not every frame)
+local titleFont = nil
+local labelFont = nil
+local listFont = nil
+
 function Journal:init()
     entriesByDay = {}
+    secretEntries = {}
+    secretsUnlocked = {}
     currentDay = 1
+    isOpen = false
+    scrollOffset = 0
 end
 
 function Journal:hasEntry(species)
@@ -42,15 +55,80 @@ function Journal:toggle()
     isOpen = not isOpen
 end
 
+--- Unlock a secret journal entry (called by horror event system or fish catches).
+-- These are narrative fragments that appear alongside normal catches.
+-- Dedup is guaranteed: the same day+text pair can only be unlocked once.
+-- @param day number - which day the entry belongs to
+-- @param text string - the secret line, e.g. "It saw you too."
+function Journal:unlockSecretEntry(day, text)
+    local key = day .. ":" .. text
+    if secretsUnlocked[key] then return end  -- already unlocked (no duplicates)
+
+    if not secretEntries[day] then secretEntries[day] = {} end
+    table.insert(secretEntries[day], {
+        name = text,
+        time = "???",
+        data = {secret = true, source = "horror_event"}
+    })
+    secretsUnlocked[key] = true
+    print("📖 Secret journal entry unlocked (Day " .. day .. "): \"" .. text .. "\"")
+end
+
+--- Unlock a narrative snippet triggered by catching a specific fish at night.
+-- Functionally identical to unlockSecretEntry but tagged with the source fish
+-- so the journal can render it with a slightly different visual cue if desired.
+-- @param day number - which day the entry belongs to
+-- @param text string - the creepy narrative line
+-- @param sourceFish string (optional) - name of the fish that triggered it
+function Journal:unlockNarrativeSnippet(day, text, sourceFish)
+    local key = day .. ":" .. text
+    if secretsUnlocked[key] then return end  -- no duplicates for same day+text
+
+    if not secretEntries[day] then secretEntries[day] = {} end
+    table.insert(secretEntries[day], {
+        name = text,
+        time = "???",
+        data = {secret = true, source = "fish_catch", fish = sourceFish or "?"}
+    })
+    secretsUnlocked[key] = true
+    print("📖 Narrative unlocked (Day " .. day .. ", from " .. (sourceFish or "?") .. "): \"" .. text .. "\"")
+end
+
+--- Check if a specific secret entry has been unlocked.
+function Journal:hasSecretEntry(day, text)
+    return secretsUnlocked[day .. ":" .. text] == true
+end
+
+--- Get all secret entries (for save/load).
+-- Returns the raw { [day] = {entryTable, ...} } structure.
+function Journal:getSecretEntries()
+    return secretEntries
+end
+
+--- Get all entries (catches + secrets) for a given day, merged in order.
+-- Secrets appear after normal catches with a distinct visual marker.
+local function getAllEntriesForDay(day)
+    local result = {}
+    -- Normal catches first
+    local catches = entriesByDay[day] or {}
+    for _, e in ipairs(catches) do table.insert(result, e) end
+    -- Secret entries appended after
+    local secrets = secretEntries[day] or {}
+    for _, s in ipairs(secrets) do table.insert(result, s) end
+    return result
+end
+
 function Journal:drawUI()
     if not isOpen then return end
+    
+    -- Cache fonts (create once)
+    if not titleFont then titleFont = love.graphics.newFont(28) end
+    if not labelFont then labelFont = love.graphics.newFont(20) end
+    if not listFont then listFont = love.graphics.newFont(16) end
+    
     local width, height = love.graphics.getWidth() * 0.6, love.graphics.getHeight() * 0.7
     -- Center the journal properly
     local x, y = love.graphics.getWidth() * 0.2, love.graphics.getHeight() * 0.15
-    
-    -- Sync with game's current day
-    local DayNightCycle = require("world.daynightcycle")
-    currentDay = DayNightCycle:getCurrentDay()
 
     -- Background
     love.graphics.setColor(0.97, 0.95, 0.92, 0.98)
@@ -60,20 +138,17 @@ function Journal:drawUI()
     love.graphics.rectangle("line", x, y, width, height)
 
     -- Title
-    local titleFont = love.graphics.newFont(28)
     love.graphics.setFont(titleFont)
     love.graphics.setColor(0.2, 0.1, 0.05, 1)
     love.graphics.print("JOURNAL", x + 20, y + 20)
 
     -- Day label
     local dayLabel = "Day " .. tostring(currentDay)
-    local labelFont = love.graphics.newFont(20)
     love.graphics.setFont(labelFont)
     love.graphics.print(dayLabel, x + 20, y + 60)
 
-    -- Species list
-    local speciesList = entriesByDay[currentDay] or {}
-    local listFont = love.graphics.newFont(16)
+    -- Species list (catches + secret entries)
+    local speciesList = getAllEntriesForDay(currentDay)
     love.graphics.setFont(listFont)
     local listY = y + 100
     local lineHeight = 28
@@ -83,11 +158,32 @@ function Journal:drawUI()
         love.graphics.print("No fish caught today.", x + 40, listY)
     else
         love.graphics.setColor(0.2, 0.1, 0.05, 1)
+        -- Clamp scroll offset in case the list shrank since it was set
+        if scrollOffset > #speciesList - maxVisible then scrollOffset = math.max(0, #speciesList - maxVisible) end
         for i = scrollOffset + 1, math.min(#speciesList, scrollOffset + maxVisible) do
             local entry = speciesList[i]
-            local fishName = type(entry) == "table" and entry.name or entry
+            local fishName = (type(entry) == "table" and entry.name) or entry
             local timeStr = type(entry) == "table" and entry.time and (" @ " .. entry.time) or ""
-            love.graphics.print("• " .. fishName .. timeStr, x + 40, listY)
+            local isSecret = type(entry) == "table" and entry.data and entry.data.secret == true
+            if isSecret then
+                -- Secret entries render in a darker, unsettling style with ✦ bullet
+                love.graphics.setColor(0.4, 0.1, 0.3, 1)
+                local line = "✦ " .. fishName
+                -- Fish-catch narratives get a subtle source attribution
+                if entry.data.source == "fish_catch" and entry.data.fish then
+                    love.graphics.print(line, x + 40, listY)
+                    -- Source tag in smaller, dimmer text on the right
+                    local srcTag = "(" .. entry.data.fish .. ")"
+                    local tagW = listFont:getWidth(srcTag)
+                    love.graphics.setColor(0.35, 0.15, 0.25, 0.7)
+                    love.graphics.print(srcTag, x + width - 40 - tagW, listY)
+                else
+                    love.graphics.print(line, x + 40, listY)
+                end
+            else
+                love.graphics.setColor(0.2, 0.1, 0.05, 1)
+                love.graphics.print("• " .. fishName .. timeStr, x + 40, listY)
+            end
             listY = listY + lineHeight
         end
         -- Draw scrollbar if needed

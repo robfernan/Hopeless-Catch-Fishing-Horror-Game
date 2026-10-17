@@ -7,12 +7,13 @@ local showTacklebox = false
 local selectedBaitIndex = 1
 local tackleboxScrollOffset = 0
 
--- Bait inventory with counts
+-- Bait inventory with unique IDs and preference tags
+-- Each bait has a `baitId` used by fishdata.lua to filter compatible species.
 local baitInventory = {
-    {name = "Worms", type = "basic", attraction = 1.0, asset = "bait_worms"},
-    {name = "Minnows", type = "live", attraction = 1.5, asset = "bait_minnows"},
-    {name = "Cheese", type = "basic", attraction = 0.8, asset = "bait_cheese"},
-    {name = "Corn", type = "basic", attraction = 0.7, asset = "bait_corn"}
+    {name = "Worms",   baitId = "worms",   type = "basic", attraction = 1.0, asset = "bait_worms"},
+    {name = "Minnows", baitId = "minnows", type = "live",  attraction = 1.5, asset = "bait_minnows"},
+    {name = "Cheese",  baitId = "cheese",  type = "basic", attraction = 0.8, asset = "bait_cheese"},
+    {name = "Corn",    baitId = "corn",    type = "basic", attraction = 0.7, asset = "bait_corn"}
 }
 
 function BaitSystem:init()
@@ -45,23 +46,17 @@ function BaitSystem:useBait(baitItem)
 end
 
 function BaitSystem:selectBait(baitIndex)
-    print("DEBUG: selectBait called with index", baitIndex)
     if baitInventory[baitIndex] then
         currentBait = baitInventory[baitIndex]
-        print("Selected: " .. currentBait.name)
         return true
     else
-        print("Invalid bait selection!")
         return false
     end
 end
 
 function BaitSystem:consumeBait()
-    if currentBait and currentBait.count > 0 then
-        currentBait.count = currentBait.count - 1
-        if currentBait.count <= 0 then
-            print("Out of " .. currentBait.name .. "!")
-        end
+    -- With unlimited bait, always succeed if a bait is selected
+    if currentBait then
         return true
     end
     return false
@@ -69,9 +64,16 @@ end
 
 function BaitSystem:getBaitModifiers()
     if not currentBait then
-        return {attraction = 0.5}
+        return {attraction = 0.5, baitId = nil}
     end
-    return {attraction = currentBait.attraction}
+    return {attraction = currentBait.attraction, baitId = currentBait.baitId}
+end
+
+--- Get the unique bait ID of the currently selected bait.
+-- This is passed to FishData:selectFish() for preference filtering.
+function BaitSystem:getCurrentBaitId()
+    if not currentBait then return nil end
+    return currentBait.baitId
 end
 
 -- Tackle Box Functions

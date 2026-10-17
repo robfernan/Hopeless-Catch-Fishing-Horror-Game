@@ -12,6 +12,14 @@ local fishScale = 0
 local fishRotation = 0
 local particleSystem = nil
 
+-- Fishman static/shake effect state
+local fishmanStaticActive = false
+local fishmanStaticTimer = 0
+local FISHMAN_STATIC_DURATION = 1.5  -- seconds of visual distortion on reveal
+
+-- Cached fonts (created once)
+local nameFont = nil
+
 -- Animation parameters
 local APPEAR_TIME = 0.8
 local SHOW_TIME = 3.0
@@ -38,8 +46,23 @@ function CatchDisplay:init()
 end
 
 function CatchDisplay:showCatch(fish)
+    if type(fish) ~= "table" then
+        print("⚠️ showCatch called with invalid fish data")
+        return false
+    end
+    
+    -- Fishman special: activate static/shake effect on reveal
+    local isFishman = (fish.name == "Fishman")
+    if isFishman then
+        fishmanStaticActive = true
+        fishmanStaticTimer = FISHMAN_STATIC_DURATION
+        print("👁️ The water distorts... something is wrong with this catch.")
+    else
+        fishmanStaticActive = false
+        fishmanStaticTimer = 0
+    end
     catchInfo = {
-    name = fish.name,
+    name = fish.name or "Unknown Fish",
     description = fish.description,
     weight = fish.weight or (math.random(5, 50) / 10),
     rarity = fish.rarity or "Common",
@@ -61,6 +84,14 @@ end
 
 function CatchDisplay:update(dt)
     if not catchInfo then return end
+    
+    -- Update Fishman static timer
+    if fishmanStaticActive then
+        fishmanStaticTimer = fishmanStaticTimer - dt
+        if fishmanStaticTimer <= 0 then
+            fishmanStaticActive = false
+        end
+    end
     
     displayTimer = displayTimer + dt
     
@@ -101,6 +132,12 @@ end
 
 function CatchDisplay:draw()
     if not catchInfo or animationPhase == "hidden" then return end
+    
+    -- Fishman static/shake overlay (drawn first so it affects the entire panel)
+    if fishmanStaticActive and catchInfo.name == "Fishman" then
+        local intensity = math.max(0, fishmanStaticTimer / FISHMAN_STATIC_DURATION)
+        self:drawFishmanStatic(intensity)
+    end
     
     local screenWidth, screenHeight = love.graphics.getWidth(), love.graphics.getHeight()
     local centerX, centerY = screenWidth / 2, screenHeight / 2 - 50
@@ -176,8 +213,8 @@ function CatchDisplay:draw()
         -- Fish name centered
         local nameColor = horrorFishNames[catchInfo.name] and {0.9, 0.4, 0.4} or {0.2, 0.4, 0.6}
         love.graphics.setColor(nameColor[1], nameColor[2], nameColor[3], fishScale)
+        if not nameFont then nameFont = love.graphics.newFont(28) end
         local defaultFont = love.graphics.getFont()  -- Store current font
-        local nameFont = love.graphics.newFont(28)
         love.graphics.setFont(nameFont)
         love.graphics.printf(catchInfo.name, panelX, centerY + 40, panelWidth, "center")
         love.graphics.setFont(defaultFont)  -- Restore original font for other text
@@ -222,10 +259,65 @@ function CatchDisplay:isShowing()
     return catchInfo ~= nil and animationPhase ~= "hidden"
 end
 
+--- Draw the Fishman static/distortion overlay.
+-- Renders random horizontal scan lines, color channel offsets, and a subtle shake.
+-- @param intensity number 0..1 (fades out over time)
+function CatchDisplay:drawFishmanStatic(intensity)
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    
+    -- Screen shake offset
+    local shakeX = (math.random() - 0.5) * 6 * intensity
+    local shakeY = (math.random() - 0.5) * 4 * intensity
+    love.graphics.push()
+    love.graphics.translate(shakeX, shakeY)
+    
+    -- Random horizontal static bars (TV interference style)
+    for i = 1, 8 do
+        local barY = math.random() * h
+        local barH = math.random(2, 6) * intensity
+        local alpha = math.random(0.05, 0.2) * intensity
+        love.graphics.setColor(0.8, 0.8, 0.9, alpha)
+        love.graphics.rectangle("fill", 0, barY, w, barH)
+    end
+    
+    -- Color channel offset (chromatic aberration effect)
+    local offset = math.random(1, 4) * intensity
+    love.graphics.setColor(1, 0, 0, 0.08 * intensity)
+    love.graphics.rectangle("fill", offset, 0, w, h)
+    love.graphics.setColor(0, 0, 1, 0.08 * intensity)
+    love.graphics.rectangle("fill", -offset, 0, w, h)
+    
+    -- Dark vignette pulse
+    local pulse = 0.3 + 0.2 * math.sin(displayTimer * 10) * intensity
+    love.graphics.setColor(0, 0, 0, pulse * 0.3)
+    love.graphics.rectangle("fill", 0, 0, w, h)
+    
+    love.graphics.pop()
+end
+
+--- Check if the Fishman static effect is currently active (for external shake).
+function CatchDisplay:isFishmanStaticActive()
+    return fishmanStaticActive and catchInfo ~= nil and catchInfo.name == "Fishman"
+end
+
 function CatchDisplay:dismiss()
     if animationPhase == "showing" then
+        -- Unlock the secret journal entry when Fishman catch is completed/dismissed
+        if catchInfo and catchInfo.name == "Fishman" then
+            local Journal = require("ui.journal")
+            local DayNightCycle = require("world.daynightcycle")
+            local dayNum = 1
+            if type(DayNightCycle.getCurrentDay) == "function" then
+                dayNum = DayNightCycle:getCurrentDay()
+            end
+            Journal:unlockSecretEntry(dayNum, "It had too many fingers.")
+        end
+        
         animationPhase = "disappearing"
         displayTimer = 0
+    elseif animationPhase == "hidden" and catchInfo then
+        -- Allow dismissing even if already hidden (edge case)
+        catchInfo = nil
     end
 end
 

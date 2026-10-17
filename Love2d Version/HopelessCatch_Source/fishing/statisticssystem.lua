@@ -88,8 +88,12 @@ function StatisticsSystem:recordCatch(fishType, fightDuration)
     end
     
     -- Record fish type
-    if stats.fishCaughtByType[fishType] then
-        stats.fishCaughtByType[fishType] = stats.fishCaughtByType[fishType] + 1
+    local key = fishType
+    if key and key:sub(1, 5) == "fish_" then
+        key = key:sub(6)
+    end
+    if key and stats.fishCaughtByType[key] then
+        stats.fishCaughtByType[key] = stats.fishCaughtByType[key] + 1
     end
     
     -- Record fight duration

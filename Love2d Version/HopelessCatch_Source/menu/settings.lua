@@ -1,4 +1,9 @@
 -- settings.lua - Game settings management
+-- Cached fonts (created once)
+local titleFontCache = nil
+local subtitleFontCache = nil
+local optionFontCache = nil
+
 local Settings = {
     peacefulMode = false,  -- When true, disables horror elements and night fish
     volume = 1.0,         -- Game volume (0.0 to 1.0)
@@ -29,10 +34,19 @@ function Settings:load()
                 return love.data.decode("string", "base64", content)
             end)
             if success and data then
-                -- Convert the decoded string back to settings
-                for line in data:gmatch("[^\n]+") do
-                    local key, value = line:match("^(.+)=(.+)$")
-                    if key and value then
+                -- Convert the decoded string back to settings.
+                -- Only apply known scalar keys to avoid overwriting tables like `resolutions`.
+                local allowedKeys = {
+                    peacefulMode = true,
+                    volume = true,
+                    settings_version = true,
+                    fullscreen = true,
+                    currentWidth = true,
+                    currentHeight = true
+                }
+                for line in data:gmatch("[^\r\n]+") do
+                    local key, value = line:match("^(%S+)%s*=%s*(.+)$")
+                    if key and value and allowedKeys[key] then
                         if value == "true" then value = true
                         elseif value == "false" then value = false
                         elseif tonumber(value) then value = tonumber(value)
@@ -167,10 +181,13 @@ function Settings:drawMenu(currentMenu, menus, selectedOption, animationTimer, t
     local menu = menus[currentMenu]
     if not menu then return end
     
-    -- Title
-    local titleFont = love.graphics.newFont(48)
-    local subtitleFont = love.graphics.newFont(20)
-    local optionFont = love.graphics.newFont(24)
+    -- Title (use cached fonts)
+    if not titleFontCache then titleFontCache = love.graphics.newFont(48) end
+    if not subtitleFontCache then subtitleFontCache = love.graphics.newFont(20) end
+    if not optionFontCache then optionFontCache = love.graphics.newFont(24) end
+    local titleFont = titleFontCache
+    local subtitleFont = subtitleFontCache
+    local optionFont = optionFontCache
     
     love.graphics.setFont(titleFont)
     local titleGlow = 0.3 + 0.2 * math.sin(titleGlowTimer)

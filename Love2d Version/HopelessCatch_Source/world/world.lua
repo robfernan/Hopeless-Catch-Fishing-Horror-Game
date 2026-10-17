@@ -19,9 +19,9 @@ function World:init()
 end
 
 function World:update(dt)
+    -- Only update the world controller here. DayNightCycle and Weather are
+    -- updated separately in main.lua to avoid double-updating per frame.
     WorldController:update(dt)
-    DayNightCycle:update(dt)
-    Weather:update(dt)
     LakeElements:update(dt)
 end
 
@@ -36,6 +36,27 @@ function World:drawForeground()
     -- DayNightCycle doesn't have drawForeground - only drawTimeIndicator  
     Weather:draw()
     LakeElements:draw()
+end
+
+--- Draw the cabin light glow over the dark environment.
+-- This renders AFTER the main world pass and visibility vignette so the
+-- lantern cuts through the darkness. Call during the post-lighting render phase.
+function World:drawCabinLight()
+    local x, y = WorldController:getLanternPosition()
+    if not x or not y then return end
+    
+    -- Render the HorrorEvents cabin light (handles flicker state internally)
+    local HorrorEvents = require("world.horrorevents")
+    if type(HorrorEvents.drawCabinLight) == "function" then
+        HorrorEvents:drawCabinLight(x, y)
+    else
+        -- Fallback: simple warm glow if HorrorEvents isn't loaded
+        love.graphics.setColor(1.0, 0.85, 0.4, 0.25)
+        love.graphics.circle("fill", x, y, 25)
+        love.graphics.setColor(1.0, 0.9, 0.5, 0.5)
+        love.graphics.circle("fill", x, y, 8)
+        love.graphics.setColor(1, 1, 1, 1)
+    end
 end
 
 function World:drawWater()
