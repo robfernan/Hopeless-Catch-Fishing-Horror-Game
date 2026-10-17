@@ -2,15 +2,15 @@
 local DayNight = {
     time = 0.35, -- 0.0 to 1.0 (0.0 = midnight, 0.25 = dawn, 0.5 = noon, 0.75 = dusk)
     day = 1,
-    timeScale = 0.008, -- Time speed
+    timeScale = 0.0022, -- Substantially slower (approx 7.5 real minutes per in-game day)
     isNight = false,
     rottenTideLevel = 1.0, -- Multiplier that grows with days
     
     ambientColors = {
-        night = {0.04, 0.06, 0.12},
-        dawn  = {0.45, 0.28, 0.32},
-        day   = {0.75, 0.78, 0.82},
-        dusk  = {0.52, 0.24, 0.22}
+        night = {0.10, 0.14, 0.26}, -- Atmospheric deep moonlit blue (visible silhouettes)
+        dawn  = {0.52, 0.32, 0.36},
+        day   = {0.85, 0.88, 0.90},
+        dusk  = {0.58, 0.28, 0.24}
     }
 }
 
