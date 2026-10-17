@@ -83,16 +83,6 @@ When uploading the web version to itch.io, use these exact settings:
 - **File:** `HopelessCatch.love`
 - **Status:** ✅ Original version
 
-### 🌐 HTML/CSS/JavaScript Version
-- **Location:** `HTML_CSS_JS/`
-- **Technology:** Vanilla JavaScript with HTML5 Canvas
-- **Status:** ⚠️ Alternative implementation
-
-### ⚛️ React/Tailwind Version
-- **Location:** `Lovable/`
-- **Technology:** React with Tailwind CSS
-- **Status:** ⚠️ Alternative implementation
-
 ## Getting Started
 
 ### Run Locally (Desktop)
@@ -124,12 +114,11 @@ python3 serve.py
 
 ## Development
 
-See the relevant README in each directory:
+See the relevant documentation:
 - [Love2d_Web/README.md](Love2d_Web/README.md) - Web development guide
-- [HTML_CSS_JS/README.md](HTML_CSS_JS/README.md) - HTML/CSS/JS guide
-- [Lovable/README.md](Lovable/README.md) - React guide
-
-For detailed information about the web port, see [Love2d_Web/WEB_PORT_GUIDE.md](Love2d_Web/WEB_PORT_GUIDE.md)
+- [Love2d_Web/DEVELOPMENT_GUIDE.md](Love2d_Web/DEVELOPMENT_GUIDE.md) - Full developer reference & architecture
+- [Love2d_Web/WEB_PORT_GUIDE.md](Love2d_Web/WEB_PORT_GUIDE.md) - Web port and love.js details
+- [Love2d_Web/ITCH_IO_GUIDE.md](Love2d_Web/ITCH_IO_GUIDE.md) - Itch.io deployment guide
 
 ## Technical Notes
 

@@ -4,16 +4,14 @@ Thank you for your interest in contributing to Hopeless Catch! This document pro
 
 ## Project Structure
 
-The project contains multiple implementations of the Hopeless Catch fishing horror game:
+The project contains two primary targets for the Hopeless Catch fishing horror game:
 
 - **Love2d Version/** - Original LÖVE 2D desktop game (Lua)
 - **Love2d_Web/** - WebAssembly port compiled with love.js
-- **HTML_CSS_JS/** - HTML/CSS/JavaScript implementation
-- **Lovable/** - React/Tailwind CSS implementation
 
 ## Getting Started
 
-### For LÖVE 2D Development
+### For LÖVE 2D Development (Desktop)
 1. Install LÖVE 2D from https://love2d.org/
 2. Navigate to `Love2d Version/HopelessCatch_Source/`
 3. Run: `love .`
@@ -23,15 +21,7 @@ The project contains multiple implementations of the Hopeless Catch fishing horr
 2. Run the local server: `python3 serve.py`
 3. Open `http://localhost:3000/` in your browser
 
-### For HTML/CSS/JS Development
-1. Navigate to `HTML_CSS_JS/`
-2. Install dependencies: `npm install`
-3. Start development server: `npm run dev`
-
-### For React/Tailwind Development
-1. Navigate to `Lovable/`
-2. Install dependencies: `npm install`
-3. Start development server: `npm run dev`
+For building web bundles or deploying with Butler/itch.io, refer to `Love2d_Web/DEVELOPMENT_GUIDE.md` and `Love2d_Web/ITCH_IO_GUIDE.md`.
 
 ## Making Changes
 
@@ -45,9 +35,7 @@ The project contains multiple implementations of the Hopeless Catch fishing horr
 ## Code Style
 
 - **Lua**: Follow LÖVE 2D conventions
-- **JavaScript**: Use consistent indentation (2 spaces)
-- **React**: Follow React best practices and component patterns
-- **CSS**: Use Tailwind CSS classes where applicable
+- **Web / JS**: Keep love.js integration and packaging scripts clean and minimal
 
 ## Testing
 

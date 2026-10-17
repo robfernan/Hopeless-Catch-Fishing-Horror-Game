@@ -15,7 +15,7 @@ jobs:
     
     - name: Check HTML file exists
       run: |
-        if [ ! -f "HTML_CSS_JS/index.html" ]; then
+        if [ ! -f "Love2d_Web/index.html" ]; then
           echo "Error: index.html not found"
           exit 1
         fi
@@ -23,7 +23,7 @@ jobs:
         
     - name: Check JavaScript files exist
       run: |
-        if [ ! -d "HTML_CSS_JS/src" ]; then
+        if [ ! -d "Love2d_Web/src" ]; then
           echo "Error: src directory not found"
           exit 1
         fi
@@ -31,7 +31,7 @@ jobs:
         
     - name: Check assets exist
       run: |
-        if [ ! -d "HTML_CSS_JS/assets" ]; then
+        if [ ! -d "Love2d_Web/assets" ]; then
           echo "Error: assets directory not found"
           exit 1
         fi
@@ -80,8 +80,8 @@ jobs:
           "README.md"
           "LICENSE"
           "CONTRIBUTING.md"
-          "HTML_CSS_JS/README.md"
-          "HTML_CSS_JS/DEVELOPER_GUIDE.md"
+          "Love2d_Web/README.md"
+          "Love2d_Web/DEVELOPMENT_GUIDE.md"
         )
         
         for file in "${required_files[@]}"; do
