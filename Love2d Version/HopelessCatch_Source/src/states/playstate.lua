@@ -31,8 +31,8 @@ function PlayState:enter(params)
     self.modal = nil
     self.cabinTimer = 0
     local w, h = love.graphics.getDimensions()
-    local minX, maxX, standY = Terrain.getDockBounds(w, h)
-    Player.init((minX + maxX) * 0.5, standY)
+    local minX, maxX, pierNearY = Terrain.getDockBounds(w, h)
+    Player.init(w * 0.5, pierNearY - 10)
     Assets.startAmbient()
     
     if params and params.openJournal then

@@ -3,94 +3,92 @@ local Terrain = {}
 
 function Terrain.draw(w, h, dayNight)
     local amb = dayNight.getAmbientColor()
-    local waterY = h * 0.62
-    local grassY = waterY - 50
+    local horizonY = h * 0.46
     
-    -- Distant Mountains
-    love.graphics.setColor(amb[1] * 0.45, amb[2] * 0.45, amb[3] * 0.6, 0.85)
+    -- Distant Mountain Ridges across the far lake
+    love.graphics.setColor(amb[1] * 0.35, amb[2] * 0.42, amb[3] * 0.55, 0.90)
     local mountainPoly = {
-        0, waterY,
-        w * 0.15, waterY - 110,
-        w * 0.35, waterY - 70,
-        w * 0.55, waterY - 140,
-        w * 0.80, waterY - 60,
-        w, waterY - 100,
-        w, waterY,
-        0, waterY
+        0, horizonY,
+        w * 0.18, horizonY - 80,
+        w * 0.40, horizonY - 45,
+        w * 0.65, horizonY - 110,
+        w * 0.88, horizonY - 55,
+        w, horizonY - 75,
+        w, horizonY,
+        0, horizonY
     }
     love.graphics.polygon("fill", mountainPoly)
     
-    -- Silhouette Pine Trees along ridge
-    love.graphics.setColor(amb[1] * 0.3, amb[2] * 0.35, amb[3] * 0.4, 0.95)
-    for x = 20, w, 35 do
-        local treeHeight = 28 + (x % 7) * 4
-        love.graphics.polygon("fill", x - 10, grassY + 10, x + 10, grassY + 10, x, grassY + 10 - treeHeight)
+    -- Distant Forested shoreline along the horizon
+    love.graphics.setColor(amb[1] * 0.25, amb[2] * 0.32, amb[3] * 0.28, 1.0)
+    love.graphics.rectangle("fill", 0, horizonY - 8, w, 8)
+    for x = 10, w, 28 do
+        local th = 16 + (x % 5) * 4
+        love.graphics.polygon("fill", x - 8, horizonY, x + 8, horizonY, x, horizonY - th)
     end
     
-    -- Shoreline Grass / Soil
-    love.graphics.setColor(amb[1] * 0.35, amb[2] * 0.5, amb[3] * 0.35, 1.0)
-    love.graphics.rectangle("fill", 0, grassY, w, waterY - grassY)
+    -- Foreground Pier (Sega Bass Fishing perspective - projecting from bottom center outward)
+    local pierFarW = 140
+    local pierNearW = 340
+    local pierFarY = horizonY + 80
+    local pierNearY = h + 10
     
-    -- Muddy bank edge
-    love.graphics.setColor(0.18 * amb[1], 0.14 * amb[2], 0.10 * amb[3], 1.0)
-    love.graphics.rectangle("fill", 0, waterY - 8, w, 8)
+    local px1 = (w - pierNearW) * 0.5
+    local px2 = (w + pierNearW) * 0.5
+    local fx1 = (w - pierFarW) * 0.5
+    local fx2 = (w + pierFarW) * 0.5
     
-    -- Dilapidated Cabin on the right
-    local cabinX = w - 240
-    local cabinY = grassY - 65
-    -- Cabin body
-    love.graphics.setColor(0.28, 0.22, 0.18, 1.0)
-    love.graphics.rectangle("fill", cabinX, cabinY, 130, 80)
-    -- Roof
-    love.graphics.setColor(0.18, 0.12, 0.10, 1.0)
-    love.graphics.polygon("fill", cabinX - 15, cabinY, cabinX + 65, cabinY - 45, cabinX + 145, cabinY)
-    -- Chimney
-    love.graphics.setColor(0.22, 0.15, 0.12, 1.0)
-    love.graphics.rectangle("fill", cabinX + 15, cabinY - 50, 18, 30)
-    -- Glowing window (flickers in darkness)
-    local flick = 0.85 + 0.15 * math.sin(love.timer.getTime() * 4)
-    if dayNight.isNight then
-        love.graphics.setColor(0.95, 0.65, 0.25, 0.85 * flick)
-    else
-        love.graphics.setColor(0.4, 0.45, 0.5, 0.7)
-    end
-    love.graphics.rectangle("fill", cabinX + 75, cabinY + 20, 24, 24)
-    -- Cabin Door
+    -- Pier shadow into water
+    love.graphics.setColor(0.02, 0.04, 0.06, 0.6)
+    love.graphics.polygon("fill", px1 - 25, pierNearY, px2 + 25, pierNearY, fx2 + 10, pierFarY, fx1 - 10, pierFarY)
+    
+    -- Heavy wooden pilings underneath
     love.graphics.setColor(0.12, 0.08, 0.06, 1.0)
-    love.graphics.rectangle("fill", cabinX + 25, cabinY + 28, 26, 52)
+    love.graphics.rectangle("fill", fx1 + 8, pierFarY, 14, 45)
+    love.graphics.rectangle("fill", fx2 - 22, pierFarY, 14, 45)
     
-    -- Wooden Fishing Pier / Dock stretching into the water
-    local dockX = w * 0.32
-    local dockW = w * 0.36
-    local dockY = waterY - 6
-    
-    -- Dock pilings
-    love.graphics.setColor(0.15, 0.11, 0.08, 1.0)
-    for px = dockX + 20, dockX + dockW - 10, 45 do
-        love.graphics.rectangle("fill", px, dockY, 10, 50)
-    end
-    
-    -- Dock planks
+    -- Wooden deck surface in perspective
     love.graphics.setColor(0.32, 0.24, 0.16, 1.0)
-    love.graphics.rectangle("fill", dockX, dockY, dockW, 14)
+    love.graphics.polygon("fill", px1, pierNearY, px2, pierNearY, fx2, pierFarY, fx1, pierFarY)
     
-    -- Rusted Dock Lantern
-    local lanternX = dockX + dockW - 15
-    local lanternY = dockY - 26
+    -- Perspective Wood Planks
+    love.graphics.setColor(0.18, 0.12, 0.08, 0.75)
+    love.graphics.setLineWidth(2)
+    local numPlanks = 16
+    for i = 1, numPlanks do
+        local frac = (i / numPlanks)^1.6 -- perspective curve
+        local y = pierFarY + (pierNearY - pierFarY) * frac
+        local leftX = fx1 + (px1 - fx1) * frac
+        local rightX = fx2 + (px2 - fx2) * frac
+        love.graphics.line(leftX, y, rightX, y)
+    end
+    love.graphics.setLineWidth(1)
+    
+    -- Pier edge railings / posts
+    love.graphics.setColor(0.24, 0.17, 0.11, 1.0)
+    love.graphics.rectangle("fill", px1 - 6, pierNearY - 140, 16, 140)
+    love.graphics.rectangle("fill", px2 - 10, pierNearY - 140, 16, 140)
+    love.graphics.rectangle("fill", fx1 - 4, pierFarY - 50, 10, 50)
+    love.graphics.rectangle("fill", fx2 - 6, pierFarY - 50, 10, 50)
+    
+    -- Pier Lantern on left post
+    local lx = px1 + 2
+    local ly = pierNearY - 145
     love.graphics.setColor(0.15, 0.15, 0.15, 1.0)
-    love.graphics.rectangle("fill", lanternX, lanternY, 6, 26)
-    love.graphics.circle("fill", lanternX + 3, lanternY, 6)
-    -- Lantern Flame
-    local lFlick = 0.8 + 0.2 * math.sin(love.timer.getTime() * 12)
+    love.graphics.rectangle("fill", lx, ly, 8, 22)
+    love.graphics.circle("fill", lx + 4, ly, 6)
+    local lFlick = 0.8 + 0.2 * math.sin(love.timer.getTime() * 10)
     love.graphics.setColor(1.0, 0.75, 0.3, 0.9 * lFlick)
-    love.graphics.circle("fill", lanternX + 3, lanternY + 8, 4)
+    love.graphics.circle("fill", lx + 4, ly + 8, 5)
 end
 
 function Terrain.getDockBounds(w, h)
-    local waterY = h * 0.62
-    local dockX = w * 0.32
-    local dockW = w * 0.36
-    return dockX, dockX + dockW, waterY - 20
+    local horizonY = h * 0.46
+    local pierFarY = horizonY + 80
+    local pierNearY = h - 35
+    local minX = w * 0.5 - 90
+    local maxX = w * 0.5 + 90
+    return minX, maxX, pierNearY, pierFarY
 end
 
 return Terrain

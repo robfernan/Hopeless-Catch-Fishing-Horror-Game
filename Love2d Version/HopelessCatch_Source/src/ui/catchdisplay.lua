@@ -35,8 +35,10 @@ function CatchDisplay.draw(w, h, fish)
     if img then
         local iw = img:getWidth()
         local ih = img:getHeight()
+        -- Target display size ~110px tall
+        local scale = 110 / ih
         love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(img, w * 0.5, my + 150, 0, 3.2, 3.2, iw * 0.5, ih * 0.5)
+        love.graphics.draw(img, w * 0.5, my + 150, 0, scale, scale, iw * 0.5, ih * 0.5)
     end
     
     -- Fish Lore / Creepy Narrative Note

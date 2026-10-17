@@ -56,6 +56,43 @@ function Assets.loadImages()
         img:setFilter("nearest", "nearest")
         Assets.images.player = img
     end
+
+    if love.filesystem.getInfo("assets/player_sheet.png") then
+        local img = love.graphics.newImage("assets/player_sheet.png")
+        img:setFilter("nearest", "nearest")
+        Assets.images.player_sheet = img
+        
+        local w = img:getWidth() / 2
+        local h = img:getHeight() / 2
+        Assets.quads.player = {
+            idle    = love.graphics.newQuad(0, 0, w, h, img:getDimensions()),
+            charge  = love.graphics.newQuad(w, 0, w, h, img:getDimensions()),
+            cast    = love.graphics.newQuad(0, h, w, h, img:getDimensions()),
+            reel    = love.graphics.newQuad(w, h, w, h, img:getDimensions())
+        }
+    end
+
+    if love.filesystem.getInfo("assets/fish/fishman_sheet.png") then
+        local img = love.graphics.newImage("assets/fish/fishman_sheet.png")
+        img:setFilter("nearest", "nearest")
+        Assets.images.fish_fishman = img
+        
+        local w = img:getWidth() / 2
+        local h = img:getHeight() / 2
+        Assets.quads.fishman = {
+            lurk   = love.graphics.newQuad(0, 0, w, h, img:getDimensions()),
+            flash  = love.graphics.newQuad(w, 0, w, h, img:getDimensions()),
+            strike = love.graphics.newQuad(0, h, w, h, img:getDimensions()),
+            roar   = love.graphics.newQuad(w, h, w, h, img:getDimensions())
+        }
+    end
+
+    if love.filesystem.getInfo("assets/water_retro.png") then
+        local img = love.graphics.newImage("assets/water_retro.png")
+        img:setFilter("linear", "linear")
+        img:setWrap("repeat", "repeat")
+        Assets.images.water_retro = img
+    end
 end
 
 function Assets.getImage(id)

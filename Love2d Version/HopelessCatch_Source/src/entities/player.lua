@@ -43,34 +43,26 @@ function Player.update(dt, input, canMove, minX, maxX)
 end
 
 function Player.draw()
-    local img = Assets.getImage("player")
+    local img = Assets.getImage("player_back") or Assets.getImage("player")
     local bob = (Player.vx ~= 0) and math.sin(Player.walkTimer) * 3 or 0
     
     if img then
-        local ox = img:getWidth() / 2
-        local oy = img:getHeight()
+        local iw = img:getWidth()
+        local ih = img:getHeight()
+        -- Target height ~170px for dramatic arcade foreground depth
+        local scale = 170 / ih
         love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(img, Player.x, Player.y + bob, 0, Player.facing * 1.5, 1.5, ox, oy)
+        love.graphics.draw(img, Player.x, Player.y + bob + 4, 0, scale, scale, iw * 0.5, ih)
     else
-        -- High-detail fallback fisherman silhouette
         love.graphics.setColor(0.18, 0.22, 0.26, 1.0)
-        love.graphics.rectangle("fill", Player.x - 10, Player.y - 42 + bob, 20, 42)
-        -- Yellow rain slicker hood
-        love.graphics.setColor(0.85, 0.72, 0.25, 1.0)
-        love.graphics.circle("fill", Player.x, Player.y - 46 + bob, 9)
+        love.graphics.rectangle("fill", Player.x - 20, Player.y - 120 + bob, 40, 120)
     end
-    
-    -- Fishing Rod
-    local tipX, tipY = Player.getRodTip()
-    love.graphics.setColor(0.35, 0.25, 0.18, 1.0)
-    love.graphics.setLineWidth(2)
-    love.graphics.line(Player.x + (Player.facing * 4), Player.y - 25 + bob, tipX, tipY)
-    love.graphics.setLineWidth(1)
 end
 
 function Player.getRodTip()
     local bob = (Player.vx ~= 0) and math.sin(Player.walkTimer) * 3 or 0
-    return Player.x + (Player.facing * 32), Player.y - 52 + bob
+    -- Tip extends forward and up into the lake view
+    return Player.x + 36, Player.y - 148 + bob
 end
 
 return Player

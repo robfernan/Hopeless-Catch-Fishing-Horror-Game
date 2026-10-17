@@ -48,16 +48,18 @@ function FishingSystem.update(dt, input, player, dayNight, waterY)
         if input.isDown("action") then
             FishingSystem.castPower = math.min(1.0, FishingSystem.castPower + dt * 1.4)
         else
-            -- Release cast!
+            -- Release cast forward into the lake!
             FishingSystem.state = "flying"
             local tipX, tipY = player.getRodTip()
             FishingSystem.bobber.x = tipX
             FishingSystem.bobber.y = tipY
-            FishingSystem.castDir = player.facing
             
-            local castDist = 120 + FishingSystem.castPower * 340
-            FishingSystem.bobber.targetX = player.x + (player.facing * castDist)
-            FishingSystem.bobber.targetY = waterY + 20 + math.random() * 40
+            -- Higher power throws deeper into the lake toward the horizon
+            local lakeDepthY = (waterY + 120) - (FishingSystem.castPower * 140)
+            local spreadX = player.x + (math.random() - 0.5) * (80 + FishingSystem.castPower * 160)
+            
+            FishingSystem.bobber.targetX = spreadX
+            FishingSystem.bobber.targetY = lakeDepthY
             
             BaitData.consumeSelected()
             Assets.play("splash", 0.1, 0.4)
@@ -143,11 +145,11 @@ function FishingSystem.draw(player)
     local tipX, tipY = player.getRodTip()
     
     if state == "charging" then
-        -- Cast trajectory preview line
-        love.graphics.setColor(1, 1, 1, 0.4)
+        -- Cast trajectory preview line aiming forward toward horizon
+        love.graphics.setColor(1, 1, 1, 0.45)
         love.graphics.setLineWidth(1)
-        local aimDist = 120 + FishingSystem.castPower * 340
-        love.graphics.line(tipX, tipY, player.x + (player.facing * aimDist), player.y + 40)
+        local targetY = (love.graphics.getHeight() * 0.46 + 120) - (FishingSystem.castPower * 140)
+        love.graphics.line(tipX, tipY, player.x, targetY)
         
     elseif state == "flying" or state == "bobbing" or state == "biting" or state == "reeling" then
         local bx = FishingSystem.bobber.x
